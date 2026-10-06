@@ -1240,8 +1240,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Auto-capture bank SMS if opened via URL query (?msg=... or ?sms=...)
+  function checkUrlForSMS() {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const rawMsg = urlParams.get('msg') || urlParams.get('sms') || urlParams.get('text');
+      if (rawMsg && rawMsg.trim()) {
+        const parsed = window.SMSParser.parseSMS(rawMsg.trim());
+        if (parsed && parsed.amount > 0) {
+          const added = window.ExpenseStorage.add({
+            type: parsed.type,
+            amount: parsed.amount,
+            merchant: parsed.merchant,
+            category: parsed.category,
+            source: parsed.source,
+            date: new Date().toISOString(),
+            notes: 'Auto-captured from SMS parameter',
+            rawSms: rawMsg.trim()
+          });
+          if (window.NotificationManager) {
+            window.NotificationManager.showToast(
+              `Recorded ${added.type.toUpperCase()}: ₹${added.amount} at ${added.merchant}`,
+              'success'
+            );
+          }
+          // Clean the query string from the address bar
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+    } catch (err) {
+      console.warn('URL SMS capture error:', err);
+    }
+  }
+
   // Initial render: show dashboard and strictly hide other tabs
   switchTab('dashboard');
+  checkUrlForSMS();
   updateNotifBadge();
   window.ExpenseStorage.syncWithServer().catch(() => {});
 });
