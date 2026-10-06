@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker — Daily Debit & Credit Tracker</title>
+  <meta name="description" content="Personal expense tracker focused on daily Debit and Credit transactions with automatic Indian bank SMS parsing and zero recurring cost.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0f1d">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Top Navigation Bar -->
+    <header class="app-navbar">
+      <div class="brand-section">
+        <div class="brand-logo-icon">₹</div>
+        <div class="brand-title-wrap">
+          <h1>ExpenseTracker <span class="brand-badge">100% Free &amp; Private</span></h1>
+          <p class="brand-subtitle">Automatic Daily Debit &amp; Credit Ledger</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs-wrapper" aria-label="Main Navigation">
+        <button class="nav-tab-btn active" data-tab="dashboard" id="tab-btn-dashboard">
+          <svg class="tab-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+          Daily &amp; Dashboard
+        </button>
+        <button class="nav-tab-btn" data-tab="monthly" id="tab-btn-monthly">
+          <svg class="tab-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+          Monthly Summary
+        </button>
+        <button class="nav-tab-btn" data-tab="reports" id="tab-btn-reports">
+          <svg class="tab-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+          Charts &amp; Reports
+        </button>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="navbar-actions">
+        <button class="btn-primary-action btn-sms-action" id="open-sms-modal-btn" title="Auto parse bank SMS messages">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd"/></svg>
+          <span>Auto SMS Parser</span>
+        </button>
+
+        <button class="btn-primary-action" id="open-tx-modal-btn" title="Add transaction manually">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+          <span>+ Add Transaction</span>
+        </button>
+
+        <button class="btn-icon" id="notif-center-btn" title="Notifications &amp; Alerts" aria-label="Notifications">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+          <span class="notif-badge-pill" id="notif-unread-badge" style="display: none;">0</span>
+        </button>
+
+        <button class="btn-icon" id="sync-hub-btn" title="Sync with Android App" aria-label="Sync Hub">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
+        </button>
+
+        <button class="btn-icon" id="settings-btn" title="Data Privacy &amp; Backup" aria-label="Settings">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+        </button>
+
+        <button class="btn-icon" id="theme-toggle-btn" title="Toggle Theme" aria-label="Toggle Theme">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN BODY: TAB CONTENTS -->
+
+    <!-- TAB 1: DASHBOARD & DAILY VIEW -->
+    <main class="tab-content active" id="tab-dashboard">
+      <!-- 1. Overview Financial Cards -->
+      <section class="overview-grid" aria-label="Financial Overview">
+        <!-- Today's Financial Summary -->
+        <article class="overview-card">
+          <div class="card-top-row">
+            <div class="card-title-group">
+              <svg class="card-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+              <h2 class="card-title">Today's Net</h2>
+            </div>
+            <span class="metric-badge" id="metric-today-net-badge">Surplus</span>
+          </div>
+          <div class="metric-primary-val" id="metric-today-net">₹0</div>
+          <div class="card-substats-row">
+            <div class="substat-col">
+              <span class="substat-label">Today's Debit</span>
+              <span class="substat-val debit-text" id="metric-today-debit">₹0</span>
+            </div>
+            <div class="substat-col">
+              <span class="substat-label">Today's Credit</span>
+              <span class="substat-val credit-text" id="metric-today-credit">₹0</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Current Month's Financial Summary -->
+        <article class="overview-card">
+          <div class="card-top-row">
+            <div class="card-title-group">
+              <svg class="card-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+              <h2 class="card-title">Current Month's Net</h2>
+            </div>
+            <span class="metric-badge" id="metric-month-net-badge">Surplus</span>
+          </div>
+          <div class="metric-primary-val" id="metric-month-net">₹0</div>
+          <div class="card-substats-row">
+            <div class="substat-col">
+              <span class="substat-label">Month Debit</span>
+              <span class="substat-val debit-text" id="metric-month-debit">₹0</span>
+            </div>
+            <div class="substat-col">
+              <span class="substat-label">Month Credit</span>
+              <span class="substat-val credit-text" id="metric-month-credit">₹0</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Overall Balance & Net Amount -->
+        <article class="overview-card balance-highlight">
+          <div class="card-top-row">
+            <div class="card-title-group">
+              <svg class="card-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>
+              <h2 class="card-title">Overall Balance / Net</h2>
+            </div>
+            <span class="metric-badge badge-credit" id="metric-overall-net-badge">Net Savings</span>
+          </div>
+          <div class="metric-primary-val credit-text" id="metric-overall-balance">₹0</div>
+          <div class="card-substats-row">
+            <div class="substat-col">
+              <span class="substat-label">Total Outflow</span>
+              <span class="substat-val debit-text" id="metric-overall-debit-total">₹0</span>
+            </div>
+            <div class="substat-col">
+              <span class="substat-label">Total Inflow</span>
+              <span class="substat-val credit-text" id="metric-overall-credit-total">₹0</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- 2. Filters & Search Bar -->
+      <section class="filter-toolbar" aria-label="Transaction Filters">
+        <div class="filter-pill-group">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="today">Today</button>
+          <button class="filter-btn" data-filter="week">This Week</button>
+          <button class="filter-btn" data-filter="month">This Month</button>
+          <button class="filter-btn" data-filter="prev_month">Previous Month</button>
+          <button class="filter-btn" data-filter="custom">Custom Range</button>
+
+          <div class="custom-date-container" id="custom-date-group">
+            <input type="date" class="date-input" id="custom-start-date" title="Start date">
+            <span style="color: var(--text-muted); font-size: 0.8rem;">to</span>
+            <input type="date" class="date-input" id="custom-end-date" title="End date">
+            <button class="btn-secondary" id="apply-custom-filter" style="padding: 4px 10px; font-size: 0.78rem;">Apply</button>
+          </div>
+        </div>
+
+        <div class="filter-search-group">
+          <div class="search-input-wrap">
+            <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+            <input type="text" class="search-field" id="search-transactions" placeholder="Search merchant, source, notes...">
+          </div>
+          <select class="category-select" id="category-filter" title="Filter by Category">
+            <option value="all">All Categories</option>
+            <option value="Salary">Salary / Income</option>
+            <option value="Food & Dining">Food & Dining</option>
+            <option value="Groceries">Groceries</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Utilities">Utilities & Bills</option>
+            <option value="Housing">Housing & Rent</option>
+            <option value="Transport">Transport</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="Investments">Investments</option>
+            <option value="General">General / Others</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- 3. Daily Transactions List Container -->
+      <section id="daily-transactions-list" aria-label="Daily Transactions">
+        <!-- Day cards with dual Debit & Credit columns inserted dynamically -->
+      </section>
+
+      <!-- Empty State View -->
+      <div class="empty-state-card" id="empty-state" style="display: none;">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 3a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h4a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
+        <h3>No Transactions Found</h3>
+        <p>No transactions match the selected filter. Try choosing "All" or add a new transaction.</p>
+        <button class="btn-primary-action" onclick="document.getElementById('open-tx-modal-btn').click()">
+          Add First Transaction
+        </button>
+      </div>
+    </main>
+
+    <!-- TAB 2: MONTHLY SUMMARY & HISTORY -->
+    <section class="tab-content" id="tab-monthly" aria-label="Monthly Financial Summary">
+      <!-- Month Selector & Action Bar -->
+      <div class="monthly-header-bar">
+        <div class="month-picker-wrap">
+          <label class="month-picker-label" for="monthly-picker-select">Select Month:</label>
+          <select class="month-select-input" id="monthly-picker-select">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <div class="monthly-action-group">
+          <button class="btn-secondary" id="copy-monthly-summary-btn" title="Copy formatted summary to clipboard">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/></svg>
+            Copy Summary
+          </button>
+          <button class="btn-primary-action" id="notify-monthly-summary-btn" title="Trigger Monthly Summary Notification">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+            Send Notification
+          </button>
+        </div>
+      </div>
+
+      <!-- Monthly Summary Highlight Cards -->
+      <div class="monthly-stats-grid">
+        <div class="monthly-stat-card">
+          <div class="monthly-stat-header">
+            <span class="stat-title">Total Debit</span>
+            <span class="metric-badge badge-debit">Outflow</span>
+          </div>
+          <div class="stat-value debit-text" id="summary-total-debit">₹0</div>
+          <span class="stat-foot-note" id="summary-debit-count">0 transactions</span>
+        </div>
+
+        <div class="monthly-stat-card">
+          <div class="monthly-stat-header">
+            <span class="stat-title">Total Credit</span>
+            <span class="metric-badge badge-credit">Inflow</span>
+          </div>
+          <div class="stat-value credit-text" id="summary-total-credit">₹0</div>
+          <span class="stat-foot-note" id="summary-credit-count">0 transactions</span>
+        </div>
+
+        <div class="monthly-stat-card">
+          <div class="monthly-stat-header">
+            <span class="stat-title">Monthly Net Amount</span>
+            <span class="metric-badge" id="summary-net-badge">Surplus</span>
+          </div>
+          <div class="stat-value" id="summary-net-amount">₹0</div>
+          <span class="stat-foot-note">Formula: Total Credit − Total Debit</span>
+        </div>
+      </div>
+
+      <!-- Highest Debit & Highest Credit Cards -->
+      <div class="highest-tx-grid">
+        <div id="summary-highest-debit"></div>
+        <div id="summary-highest-credit"></div>
+      </div>
+
+      <!-- Daily Expense Breakdown for Selected Month -->
+      <div class="monthly-breakdown-section">
+        <h3 class="section-subheading">
+          <svg class="tiny-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
+          Daily Expense &amp; Credit Breakdown
+        </h3>
+        <div id="monthly-daily-breakdown">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: CHARTS & REPORTS -->
+    <section class="tab-content" id="tab-reports" aria-label="Visual Reports & Trends">
+      <div class="reports-charts-grid">
+        <!-- Monthly Debit vs Credit Bar Chart -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-card-title">Monthly Debit vs Credit Comparison</h3>
+              <p class="chart-card-subtitle">Are you spending more or receiving more?</p>
+            </div>
+          </div>
+          <div class="svg-chart-container" id="reports-monthly-bar-chart"></div>
+        </div>
+
+        <!-- Donut Ratio Chart -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-card-title">Debit vs Credit Ratio</h3>
+              <p class="chart-card-subtitle">Volume &amp; count proportion</p>
+            </div>
+          </div>
+          <div class="svg-chart-container" id="reports-ratio-donut-chart"></div>
+        </div>
+
+        <!-- Daily Spending Trend Line/Area Chart -->
+        <div class="chart-card full-width">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-card-title">Daily Spending Trend Curve</h3>
+              <p class="chart-card-subtitle">Trajectory of daily Debit expenses and Credit inflows</p>
+            </div>
+          </div>
+          <div class="svg-chart-container" id="reports-daily-trend-chart"></div>
+        </div>
+
+        <!-- Category Breakdown -->
+        <div class="chart-card full-width">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-card-title">Debit Spending by Category</h3>
+              <p class="chart-card-subtitle">Where is your money going?</p>
+            </div>
+          </div>
+          <div class="category-breakdown-list" id="reports-category-list"></div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /.app-container -->
+
+  <!-- ==========================================================================
+       MODAL 1: AUTO SMS DETECTOR & PARSER
+       ========================================================================== -->
+  <div class="modal-backdrop" id="sms-modal" role="dialog" aria-modal="true" aria-labelledby="sms-modal-title">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <svg class="modal-title-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd"/></svg>
+          <h3 class="modal-title" id="sms-modal-title">Automatic SMS Transaction Parser</h3>
+        </div>
+        <button class="modal-close-btn" id="close-sms-modal-btn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="privacy-notice-box">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          <div>
+            <strong>100% Private On-Device Detection:</strong> SMS content is processed entirely inside your local browser sandbox. No data ever leaves your device or touches any server.
+          </div>
+        </div>
+
+        <div class="sample-chips-label">Quick Test Presets (Click to Load Real Bank SMS):</div>
+        <div class="sample-chips-wrap" id="sms-sample-chips">
+          <!-- Populated from SMS_SAMPLES -->
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="sms-text-input">Paste Bank / UPI SMS Message Text:</label>
+          <textarea class="form-textarea" id="sms-text-input" rows="4" placeholder="Paste bank SMS here, e.g.:&#10;HDFC Bank: Rs 480.00 debited from A/C XX4012 on 06-Oct-26 to SWIGGY via UPI. Avl Bal: Rs 34,520.00"></textarea>
+        </div>
+
+        <button class="btn-secondary" id="sms-parse-btn" style="width: 100%; justify-content: center;">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+          Detect &amp; Preview Transaction
+        </button>
+
+        <!-- Preview Card -->
+        <div id="sms-preview-card" style="display: none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="document.getElementById('close-sms-modal-btn').click()">Cancel</button>
+        <button class="btn-primary-action btn-sms-action" id="sms-apply-btn" disabled>
+          + Add to Tracker
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 2: MANUAL ADD & EDIT TRANSACTION (FULL CRUD)
+       ========================================================================== -->
+  <div class="modal-backdrop" id="tx-modal" role="dialog" aria-modal="true" aria-labelledby="tx-modal-title">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <svg class="modal-title-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+          <h3 class="modal-title" id="tx-modal-title">Add Transaction Manually</h3>
+        </div>
+        <button class="modal-close-btn" id="close-tx-modal-btn" aria-label="Close">&times;</button>
+      </div>
+      <form id="tx-form">
+        <div class="modal-body">
+          <!-- Type Toggle -->
+          <div class="form-group">
+            <label class="form-label">Transaction Type:</label>
+            <div class="type-toggle-pill">
+              <button type="button" class="toggle-option-btn debit active" id="tx-type-debit">
+                <span class="type-indicator-dot debit"></span>
+                Debit (Money Spent)
+              </button>
+              <button type="button" class="toggle-option-btn credit" id="tx-type-credit">
+                <span class="type-indicator-dot credit"></span>
+                Credit (Money Received)
+              </button>
+            </div>
+          </div>
+
+          <!-- Amount -->
+          <div class="form-group">
+            <label class="form-label" for="tx-amount">Amount (₹ INR):</label>
+            <input type="number" step="0.01" min="0.01" class="form-input" id="tx-amount" placeholder="e.g. 1500" required>
+          </div>
+
+          <!-- Merchant / Description -->
+          <div class="form-group">
+            <label class="form-label" for="tx-merchant">Description / Merchant / Source:</label>
+            <input type="text" class="form-input" id="tx-merchant" placeholder="e.g. Swiggy, Infosys Salary, DMart, Rent" required>
+          </div>
+
+          <div class="form-row-2">
+            <!-- Category -->
+            <div class="form-group">
+              <label class="form-label" for="tx-category">Category:</label>
+              <select class="form-select" id="tx-category">
+                <option value="General">General</option>
+                <option value="Salary">Salary / Income</option>
+                <option value="Food & Dining">Food & Dining</option>
+                <option value="Groceries">Groceries</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Utilities">Utilities & Bills</option>
+                <option value="Housing">Housing & Rent</option>
+                <option value="Transport">Transport</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Investments">Investments</option>
+                <option value="Freelance">Freelance</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+
+            <!-- Source / Account -->
+            <div class="form-group">
+              <label class="form-label" for="tx-source">Account / Source:</label>
+              <select class="form-select" id="tx-source">
+                <option value="HDFC Bank XX4012">HDFC Bank XX4012</option>
+                <option value="SBI Bank XX3114">SBI Bank XX3114</option>
+                <option value="ICICI Bank XX8921">ICICI Bank XX8921</option>
+                <option value="Axis Bank XX1102">Axis Bank XX1102</option>
+                <option value="Google Pay">Google Pay</option>
+                <option value="PhonePe">PhonePe</option>
+                <option value="Paytm UPI">Paytm UPI</option>
+                <option value="Cash / Wallet">Cash / Wallet</option>
+                <option value="Manual">Manual</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Date & Time -->
+          <div class="form-group">
+            <label class="form-label" for="tx-datetime">Date &amp; Time:</label>
+            <input type="datetime-local" class="form-input" id="tx-datetime" required>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-group">
+            <label class="form-label" for="tx-notes">Optional Notes / Tag:</label>
+            <input type="text" class="form-input" id="tx-notes" placeholder="e.g. UPI Ref, dinner with friends, invoice #">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="document.getElementById('close-tx-modal-btn').click()">Cancel</button>
+          <button type="submit" class="btn-primary-action" id="tx-submit-btn">Save Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 3: DELETE CONFIRMATION
+       ========================================================================== -->
+  <div class="modal-backdrop" id="delete-modal" role="dialog" aria-modal="true">
+    <div class="modal-window" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Delete Transaction</h3>
+        <button class="modal-close-btn" id="delete-cancel-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">Are you sure you want to delete this transaction? Daily and monthly totals will automatically recalculate.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="document.getElementById('delete-cancel-btn').click()">Cancel</button>
+        <button class="btn-danger" id="delete-confirm-btn">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: SYNC WITH ANDROID APP
+       ========================================================================== -->
+  <div class="modal-backdrop" id="sync-modal" role="dialog" aria-modal="true">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <svg class="modal-title-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
+          <h3 class="modal-title">Android App &amp; Web Sync Hub</h3>
+        </div>
+        <button class="modal-close-btn" id="sync-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="privacy-notice-box" style="margin-bottom: 16px;">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          <div>
+            <strong>100% Free Local Network Sync:</strong> Both your phone and your PC sync directly over your home Wi-Fi. No third-party servers, no monthly fees, 100% private.
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-text">
+            <h4>Sync Status</h4>
+            <p id="sync-hub-status-text">Connected to local hub • Auto-syncing every 10s</p>
+          </div>
+          <span class="metric-badge badge-credit" id="sync-status-badge">Online</span>
+        </div>
+
+        <div class="form-group" style="margin-top: 14px;">
+          <label class="form-label">Phone Connection URL (Enter this in Android App):</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-input" id="sync-url-input" readonly value="http://172.20.10.2:8080/api/sync">
+            <button class="btn-secondary" id="copy-sync-url-btn">Copy</button>
+          </div>
+          <span style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px; display: block;">
+            Ensure your Android phone and this PC are on the same Wi-Fi network.
+          </span>
+        </div>
+
+        <div class="settings-section-title" style="margin-top: 18px;">How It Automates Everything:</div>
+        <ol style="font-size: 0.84rem; color: var(--text-secondary); padding-left: 20px; line-height: 1.6;">
+          <li>Your Android phone receives a bank SMS or UPI notification (GPay, PhonePe, Paytm).</li>
+          <li>The Android background service automatically extracts Debit/Credit and amount.</li>
+          <li>It pushes the transaction directly to this Local Hub.</li>
+          <li>Your browser automatically updates the Debit &amp; Credit columns instantly!</li>
+        </ol>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="manual-sync-btn">Force Sync Now</button>
+        <button class="btn-primary-action" onclick="document.getElementById('sync-close-btn').click()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 4: SETTINGS, PRIVACY & DATA BACKUP
+       ========================================================================== */
+  <div class="modal-backdrop" id="settings-modal" role="dialog" aria-modal="true">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <svg class="modal-title-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+          <h3 class="modal-title">Settings &amp; Data Privacy</h3>
+        </div>
+        <button class="modal-close-btn" id="settings-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="privacy-notice-box" style="margin-bottom: 20px;">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+          <div>
+            <strong>100% Free &amp; Offline Architecture:</strong> No cloud servers, no paid APIs, no subscriptions, no tracking. All data is kept securely on your personal browser storage.
+          </div>
+        </div>
+
+        <div class="settings-section-title">Data Backup &amp; Export</div>
+        <div class="settings-card">
+          <div class="settings-text">
+            <h4>Export Data Backup</h4>
+            <p>Download all transaction records as JSON or CSV spreadsheet.</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-secondary" id="export-json-btn">JSON</button>
+            <button class="btn-secondary" id="export-csv-btn">CSV</button>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-text">
+            <h4>Import Backup</h4>
+            <p>Restore previous transactions from a JSON backup file.</p>
+          </div>
+          <div>
+            <input type="file" id="import-json-file" accept=".json" style="display: none;">
+            <button class="btn-secondary" onclick="document.getElementById('import-json-file').click()">Select File</button>
+          </div>
+        </div>
+
+        <div class="settings-section-title">Database Management</div>
+        <div class="settings-card">
+          <div class="settings-text">
+            <h4>Reset to Realistic Demo Data</h4>
+            <p>Reload sample Indian bank transactions for testing.</p>
+          </div>
+          <button class="btn-secondary" id="reset-demo-btn">Reset Demo</button>
+        </div>
+
+        <div class="settings-card" style="border-color: var(--debit-border);">
+          <div class="settings-text">
+            <h4>Delete All Data</h4>
+            <p>Permanently erase all transaction records from this device.</p>
+          </div>
+          <button class="btn-danger" id="clear-all-data-btn">Clear All</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="document.getElementById('settings-close-btn').click()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       NOTIFICATION CENTER DRAWER
+       ========================================================================== -->
+  <div class="drawer-backdrop" id="notif-drawer">
+    <aside class="drawer-panel" role="dialog" aria-modal="true" aria-label="Notification Center">
+      <div class="drawer-header">
+        <h3 class="drawer-title">Notifications &amp; Alerts</h3>
+        <button class="modal-close-btn" id="notif-drawer-close">&times;</button>
+      </div>
+      <div class="drawer-body" id="notif-list">
+        <!-- Populated dynamically -->
+      </div>
+      <div class="drawer-footer">
+        <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-secondary" id="notif-request-perm-btn" style="flex: 1; font-size: 0.78rem;">
+              Enable OS Notifications
+            </button>
+            <button class="btn-secondary" id="notif-clear-btn" style="font-size: 0.78rem;">Clear</button>
+          </div>
+          <button class="btn-primary-action" id="notif-trigger-daily-summary" style="width: 100%; justify-content: center; font-size: 0.85rem;">
+            Send Today's Summary Now
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Scripts (Strict Loading Order) -->
+  <script src="js/storage.js"></script>
+  <script src="js/smsParser.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
