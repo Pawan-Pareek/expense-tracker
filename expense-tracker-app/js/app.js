@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedMonth: null, // { year, monthIndex }
     editingTxId: null,
     deleteTxId: null,
+    mobileColumnView: 'both', // 'both' | 'debit' | 'credit'
     theme: localStorage.getItem('expense_tracker_theme') || 'dark'
   };
 
@@ -158,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ==========================================================================
-     2. NAVIGATION TABS
+     2. NAVIGATION TABS (Desktop Header & Mobile Bottom Bar)
      ========================================================================== */
 
   el.tabBtns.forEach((btn) => {
@@ -168,9 +169,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  const mobileTabBtns = document.querySelectorAll('.mobile-tab-btn[data-tab]');
+  mobileTabBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const targetTab = btn.getAttribute('data-tab');
+      switchTab(targetTab);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  const mobSmsBtn = document.getElementById('mob-tab-sms');
+  if (mobSmsBtn) {
+    mobSmsBtn.addEventListener('click', () => {
+      if (el.smsModal) {
+        el.smsModal.classList.add('active');
+        if (el.smsTextInput) el.smsTextInput.focus();
+      }
+    });
+  }
+
+  const mobSettingsBtn = document.getElementById('mob-tab-settings');
+  if (mobSettingsBtn) {
+    mobSettingsBtn.addEventListener('click', () => {
+      if (el.settingsModal) el.settingsModal.classList.add('active');
+    });
+  }
+
   function switchTab(tabName) {
     state.activeTab = tabName;
     el.tabBtns.forEach((b) => b.classList.toggle('active', b.getAttribute('data-tab') === tabName));
+    mobileTabBtns.forEach((b) => b.classList.toggle('active', b.getAttribute('data-tab') === tabName));
     el.tabContents.forEach((c) => c.classList.toggle('active', c.id === `tab-${tabName}`));
 
     if (tabName === 'monthly') {
@@ -279,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <!-- Dual Column Layout: Left Column = Debit, Right Column = Credit -->
           <div class="dual-column-container">
             <!-- DEBIT COLUMN (Money Spent / Deducted) -->
-            <div class="column-section column-debit">
+            <div class="column-section column-debit ${state.mobileColumnView === 'credit' ? 'hide-on-mobile-filter' : ''}">
               <div class="column-header column-header-debit">
                 <span class="column-title">
                   <span class="type-indicator-dot debit"></span>
@@ -295,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <!-- CREDIT COLUMN (Money Received / Added) -->
-            <div class="column-section column-credit">
+            <div class="column-section column-credit ${state.mobileColumnView === 'debit' ? 'hide-on-mobile-filter' : ''}">
               <div class="column-header column-header-credit">
                 <span class="column-title">
                   <span class="type-indicator-dot credit"></span>
@@ -402,6 +430,16 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  /* Mobile Segmented Column Switcher */
+  document.querySelectorAll('.view-segment-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.view-segment-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.mobileColumnView = btn.getAttribute('data-view');
+      renderDashboard();
+    });
+  });
 
   /* ==========================================================================
      4. FILTERS & SEARCH
@@ -1081,9 +1119,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (el.resetDemoBtn) {
     el.resetDemoBtn.addEventListener('click', () => {
-      if (confirm('Reset to realistic demo transactions (including Sep & Oct 2026 data)?')) {
-        window.ExpenseStorage.resetToDemo();
-        window.NotificationManager.showToast('Reset to demo dataset successfully!', 'success');
+      if (confirm('Load sample transactions for preview?')) {
+        window.ExpenseStorage.loadDemoSamples();
+        window.NotificationManager.showToast('Sample dataset loaded!', 'info');
         el.settingsModal.classList.remove('active');
       }
     });

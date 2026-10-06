@@ -51,9 +51,11 @@ module.exports = async (req, res) => {
     }
 
     if (!rawMsg || !rawMsg.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: 'No message provided. Use ?msg=Your+Bank+SMS+Text in URL.'
+      return res.status(200).json({
+        success: true,
+        status: 'online',
+        message: 'iOS Bank SMS Webhook is active and connected! When an SMS arrives on your iPhone, Shortcuts will automatically push the transaction.',
+        hint: 'To test manually with a sample SMS, append: ?msg=Rs+500+debited+from+HDFC+to+SWIGGY'
       });
     }
 

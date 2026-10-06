@@ -1,209 +1,68 @@
 /**
  * Storage Module for Expense Tracker
  * 100% Free, Local On-Device Persistence via LocalStorage
- * Privacy-First: No data is ever transmitted to any remote server.
+ * Privacy-First: Clean slate, zero pre-loaded dummy data by default.
  */
 
-const STORAGE_KEY = 'expense_tracker_transactions_v1';
-const SETTINGS_KEY = 'expense_tracker_settings_v1';
+const STORAGE_KEY = 'expense_tracker_transactions_v2';
+const SETTINGS_KEY = 'expense_tracker_settings_v2';
 
-// Seed demo data spanning current month (Oct 2026) & previous month (Sep 2026)
-const DEMO_TRANSACTIONS = [
-  // September 2026 (matching the user's example in requirements)
+// Optional demo samples (only loaded if user explicitly clicks "Load Demo Data" in settings)
+const OPTIONAL_DEMO_SAMPLES = [
   {
-    id: 'tx-sep-01',
+    id: 'tx-demo-01',
     type: 'credit',
     amount: 50000,
-    merchant: 'Infosys Salary',
+    merchant: 'Corporate Salary',
     category: 'Salary',
-    source: 'HDFC Bank XX4012',
-    date: '2026-09-01T10:00:00',
+    source: 'HDFC Bank',
+    date: new Date(Date.now() - 86400000 * 5).toISOString(),
     notes: 'Monthly corporate salary credit',
-    rawSms: 'Your A/C XX4012 is credited by Rs 50000.00 on 01-Sep-26 towards Salary by Infosys Ltd.'
+    rawSms: 'Your A/C XX4012 is credited by Rs 50000.00 towards Salary.'
   },
   {
-    id: 'tx-sep-02',
+    id: 'tx-demo-02',
     type: 'debit',
     amount: 15000,
     merchant: 'Apartment Rent',
     category: 'Housing',
-    source: 'HDFC Bank XX4012',
-    date: '2026-09-02T11:30:00',
-    notes: 'House rent via UPI to Landlord',
-    rawSms: 'Rs 15000.00 debited from A/C XX4012 on 02-Sep-26 to VPA landlord@okhdfcbank. Ref 62450192.'
+    source: 'HDFC Bank',
+    date: new Date(Date.now() - 86400000 * 4).toISOString(),
+    notes: 'House rent payment via UPI',
+    rawSms: 'Rs 15000.00 debited from A/C XX4012 to landlord@okhdfcbank.'
   },
   {
-    id: 'tx-sep-03',
+    id: 'tx-demo-03',
     type: 'debit',
-    amount: 4500,
-    merchant: 'DMart Supermarket',
-    category: 'Groceries',
-    source: 'ICICI Bank XX8921',
-    date: '2026-09-05T18:45:00',
-    notes: 'Monthly groceries',
-    rawSms: 'ICICI Bank Card XX8921 spent Rs 4500.00 at DMART HYDERABAD on 05-Sep-26. Avl Bal Rs 42,100.'
+    amount: 2450,
+    merchant: 'Amazon Shopping',
+    category: 'Shopping',
+    source: 'Axis Bank',
+    date: new Date(Date.now() - 86400000 * 2).toISOString(),
+    notes: 'Household items',
+    rawSms: 'INR 2450.00 spent on Card XX1102 at AMAZON INDIA.'
   },
   {
-    id: 'tx-sep-04',
+    id: 'tx-demo-04',
     type: 'debit',
-    amount: 2200,
-    merchant: 'Tata Power Electricity',
-    category: 'Utilities',
-    source: 'PhonePe (SBI)',
-    date: '2026-09-10T09:15:00',
-    notes: 'Electricity bill payment',
-    rawSms: 'Paid Rs 2200 to Tata Power on PhonePe using SBI A/c XX3114. UPI Ref: 6253910.'
-  },
-  {
-    id: 'tx-sep-05',
-    type: 'debit',
-    amount: 850,
+    amount: 480,
     merchant: 'Swiggy Food',
     category: 'Food & Dining',
     source: 'Google Pay',
-    date: '2026-09-12T20:10:00',
-    notes: 'Dinner order',
-    rawSms: 'Rs 850.00 debited from SBI A/C XX3114 to SWIGGY on 12-Sep-26 via UPI.'
-  },
-  {
-    id: 'tx-sep-06',
-    type: 'debit',
-    amount: 3600,
-    merchant: 'Amazon Shopping',
-    category: 'Shopping',
-    source: 'Axis Bank XX1102',
-    date: '2026-09-18T14:20:00',
-    notes: 'Electronics accessories',
-    rawSms: 'Axis Bank: INR 3,600.00 spent on your card XX1102 at AMAZON INDIA on 18-Sep-26.'
-  },
-  {
-    id: 'tx-sep-07',
-    type: 'debit',
-    amount: 5000,
-    merchant: 'Mutual Fund SIP',
-    category: 'Investments',
-    source: 'HDFC Bank XX4012',
-    date: '2026-09-20T08:00:00',
-    notes: 'Nifty 50 Index Fund SIP auto-debit',
-    rawSms: 'HDFC Bank: Rs 5000.00 debited from A/C XX4012 towards ACH DEBIT - NIPPON INDIA MF on 20-Sep-26.'
-  },
-  {
-    id: 'tx-sep-08',
-    type: 'debit',
-    amount: 1350,
-    merchant: 'Zomato Dining',
-    category: 'Food & Dining',
-    source: 'Paytm UPI',
-    date: '2026-09-25T21:40:00',
-    notes: 'Weekend dinner with friends',
-    rawSms: 'Paytm: Money sent Rs 1350 to Zomato from A/c XX8921 on 25-Sep-26.'
-  },
-
-  // October 2026 (Current Month)
-  {
-    id: 'tx-oct-01',
-    type: 'credit',
-    amount: 52000,
-    merchant: 'Infosys Salary',
-    category: 'Salary',
-    source: 'HDFC Bank XX4012',
-    date: '2026-10-01T10:00:00',
-    notes: 'October monthly salary credit',
-    rawSms: 'Your A/C XX4012 is credited by Rs 52000.00 on 01-Oct-26 towards Salary by Infosys Ltd. Avl Bal: Rs 64,250.00'
-  },
-  {
-    id: 'tx-oct-02',
-    type: 'debit',
-    amount: 15000,
-    merchant: 'Apartment Rent',
-    category: 'Housing',
-    source: 'HDFC Bank XX4012',
-    date: '2026-10-02T11:00:00',
-    notes: 'October rent payment',
-    rawSms: 'Rs 15000.00 debited from A/C XX4012 on 02-Oct-26 to VPA landlord@okhdfcbank. Ref 6271920.'
-  },
-  {
-    id: 'tx-oct-03',
-    type: 'debit',
-    amount: 3200,
-    merchant: 'Nature Basket Groceries',
-    category: 'Groceries',
-    source: 'ICICI Bank XX8921',
-    date: '2026-10-03T17:30:00',
-    notes: 'Vegetables and pantry supplies',
-    rawSms: 'ICICI Bank: Rs 3200.00 debited from A/c XX8921 at NATURES BASKET on 03-Oct-26.'
-  },
-  {
-    id: 'tx-oct-04',
-    type: 'credit',
-    amount: 3500,
-    merchant: 'Freelance Project',
-    category: 'Freelance',
-    source: 'SBI Bank XX3114',
-    date: '2026-10-04T15:20:00',
-    notes: 'Logo design payment received from client',
-    rawSms: 'SBI: Your A/C XX3114 has been credited by Rs 3500.00 via UPI from client@upi on 04-Oct-26.'
-  },
-  {
-    id: 'tx-oct-05',
-    type: 'debit',
-    amount: 1200,
-    merchant: 'Airtel Broadband Bill',
-    category: 'Utilities',
-    source: 'PhonePe',
-    date: '2026-10-05T10:45:00',
-    notes: 'Fiber internet bill for October',
-    rawSms: 'Paid Rs 1200 to Airtel Broadband on PhonePe using HDFC A/c XX4012. UPI Ref: 6289912.'
-  },
-  {
-    id: 'tx-oct-06',
-    type: 'debit',
-    amount: 680,
-    merchant: 'Uber Ride',
-    category: 'Transport',
-    source: 'Paytm UPI',
-    date: '2026-10-05T19:15:00',
-    notes: 'Cab ride to office meeting',
-    rawSms: 'Paytm: Rs 680.00 debited from A/c XX8921 to UBER INDIA on 05-Oct-26.'
-  },
-  // Today's Transactions (06 Oct 2026) - matching prompt's example numbers!
-  {
-    id: 'tx-oct-07',
-    type: 'credit',
-    amount: 5000,
-    merchant: 'Refund & Cash Credit',
-    category: 'Others',
-    source: 'HDFC Bank XX4012',
-    date: '2026-10-06T08:30:00',
-    notes: 'Security deposit refund received',
-    rawSms: 'Your A/C XX4012 is credited by Rs 5000.00 on 06-Oct-26 via NEFT from REFUND CORP. Avl Bal: Rs 55,200.00'
-  },
-  {
-    id: 'tx-oct-08',
-    type: 'debit',
-    amount: 1950,
-    merchant: 'Apollo Pharmacy',
-    category: 'Healthcare',
-    source: 'Google Pay (SBI)',
-    date: '2026-10-06T09:05:00',
-    notes: 'Medicine refill',
-    rawSms: 'Rs 1950.00 debited from SBI A/C XX3114 to APOLLO PHARMACY on 06-Oct-26 via UPI.'
-  },
-  {
-    id: 'tx-oct-09',
-    type: 'debit',
-    amount: 500,
-    merchant: 'Swiggy Cafe',
-    category: 'Food & Dining',
-    source: 'Axis Bank XX1102',
-    date: '2026-10-06T09:25:00',
-    notes: 'Morning breakfast & coffee',
-    rawSms: 'Axis Bank: INR 500.00 spent on Card XX1102 at SWIGGY BANGALORE on 06-Oct-26.'
+    date: new Date().toISOString(),
+    notes: 'Lunch order',
+    rawSms: 'Rs 480.00 debited to SWIGGY via UPI.'
   }
 ];
 
 class StorageManager {
   constructor() {
+    // Thoroughly remove legacy storage keys that had seeded dummy data
+    try {
+      localStorage.removeItem('expense_tracker_transactions');
+      localStorage.removeItem('expense_tracker_transactions_v1');
+    } catch (e) {}
+
     this.transactions = this.loadFromStorage();
   }
 
@@ -211,14 +70,27 @@ class StorageManager {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          // Strictly purge any dummy/demo/sample IDs from earlier runs
+          const cleaned = parsed.filter(t => 
+            t && t.id && 
+            !t.id.startsWith('tx-sep-') && 
+            !t.id.startsWith('tx-oct-') && 
+            !t.id.startsWith('tx-demo-') && 
+            !t.id.startsWith('demo-')
+          );
+          if (cleaned.length !== parsed.length) {
+            this.saveToStorage(cleaned);
+          }
+          return cleaned;
+        }
       }
     } catch (e) {
       console.warn('Failed to load from localStorage:', e);
     }
-    // Initialize with demo data if empty
-    this.saveToStorage(DEMO_TRANSACTIONS);
-    return [...DEMO_TRANSACTIONS];
+    // Clean slate: start with completely empty transactions ledger
+    return [];
   }
 
   saveToStorage(data) {
@@ -230,7 +102,6 @@ class StorageManager {
   }
 
   getAll() {
-    // Return sorted by date descending (newest first)
     return [...this.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
   }
 
@@ -251,9 +122,13 @@ class StorageManager {
       rawSms: transaction.rawSms || null
     };
 
-    this.transactions.push(newTx);
-    this.saveToStorage(this.transactions);
-    this.dispatchChangeEvent('add', newTx);
+    // Prevent duplicate entries
+    const exists = this.transactions.some(t => t.id === newTx.id || (t.rawSms && t.rawSms === newTx.rawSms && Math.abs(new Date(t.date) - new Date(newTx.date)) < 60000));
+    if (!exists) {
+      this.transactions.push(newTx);
+      this.saveToStorage(this.transactions);
+      this.dispatchChangeEvent('add', newTx);
+    }
     return newTx;
   }
 
@@ -289,10 +164,16 @@ class StorageManager {
     this.transactions = [];
     this.saveToStorage([]);
     this.dispatchChangeEvent('clear', null);
+    // Also clear server storage
+    fetch('./api/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transactions: [] })
+    }).catch(() => {});
   }
 
-  resetToDemo() {
-    this.transactions = [...DEMO_TRANSACTIONS];
+  loadDemoSamples() {
+    this.transactions = [...OPTIONAL_DEMO_SAMPLES];
     this.saveToStorage(this.transactions);
     this.dispatchChangeEvent('reset', this.transactions);
     return this.transactions;
@@ -349,7 +230,6 @@ class StorageManager {
     window.dispatchEvent(new CustomEvent('expenseTracker:dataChanged', {
       detail: { action, payload }
     }));
-    // Auto sync to local server when changes happen
     this.syncWithServer().catch(() => {});
   }
 
@@ -367,7 +247,7 @@ class StorageManager {
       if (resp.ok) {
         const result = await resp.json();
         if (result.success && Array.isArray(result.transactions)) {
-          // Check if server returned new transactions (e.g. from Android app)
+          // If server has more or newer transactions
           if (result.transactions.length !== this.transactions.length) {
             this.transactions = result.transactions;
             this.saveToStorage(this.transactions);
@@ -376,7 +256,7 @@ class StorageManager {
             }));
           }
           window.dispatchEvent(new CustomEvent('expenseTracker:syncStatus', {
-            detail: { status: 'online', total: result.total, time: new Date().toLocaleTimeString() }
+            detail: { status: 'online', total: result.total || this.transactions.length, time: new Date().toLocaleTimeString() }
           }));
           return result;
         }
@@ -393,9 +273,9 @@ class StorageManager {
 // Global storage instance
 window.ExpenseStorage = new StorageManager();
 
-// Periodic sync poll every 10 seconds to receive transactions logged by Android app
+// Periodic sync poll every 8 seconds
 setInterval(() => {
   if (window.ExpenseStorage) {
     window.ExpenseStorage.syncWithServer().catch(() => {});
   }
-}, 10000);
+}, 8000);

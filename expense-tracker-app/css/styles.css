@@ -1,235 +1,195 @@
 /* ==========================================================================
-   EXPENSE TRACKER DESIGN SYSTEM
-   Modern, Ultra-clean, High-Precision Financial Interface
+   EXPENSE TRACKER — REFINED EXECUTIVE FINTECH DESIGN SYSTEM
+   Clean, Minimalist, High-Precision Interface (Apple Wallet / Stripe / Linear style)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Dark Mode (Default) Color Tokens */
-  --bg-primary: #0a0f1d;
-  --bg-secondary: #111827;
-  --bg-card: rgba(17, 24, 39, 0.85);
-  --bg-card-hover: rgba(24, 33, 53, 0.95);
-  --bg-glass: rgba(255, 255, 255, 0.03);
-  --bg-input: #1e293b;
+  /* Matte Obsidian Theme (Professional Fintech Dark Mode) */
+  --bg-app: #090d14;
+  --bg-surface: #101622;
+  --bg-surface-elevated: #161e2e;
+  --bg-subtle: #1c2638;
+  --bg-input: #131b28;
 
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-medium: rgba(255, 255, 255, 0.14);
-  --border-focus: #6366f1;
+  --border-hairline: rgba(255, 255, 255, 0.07);
+  --border-subtle: rgba(255, 255, 255, 0.12);
+  --border-focus: #4f46e5;
 
-  --text-primary: #f8fafc;
+  --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  --text-inverse: #090d16;
+  --text-dim: #475569;
 
-  /* Debit Palette (Money Deducted / Expenses) */
-  --debit-primary: #f43f5e;
-  --debit-gradient: linear-gradient(135deg, #fb7185 0%, #e11d48 100%);
-  --debit-bg: rgba(244, 63, 94, 0.08);
-  --debit-border: rgba(244, 63, 94, 0.25);
-  --debit-glow: 0 0 20px rgba(244, 63, 94, 0.2);
+  /* Executive Financial Accents */
+  --debit-accent: #f43f5e;
+  --debit-soft: rgba(244, 63, 94, 0.1);
+  --debit-border: rgba(244, 63, 94, 0.22);
 
-  /* Credit Palette (Money Added / Income) */
-  --credit-primary: #10b981;
-  --credit-gradient: linear-gradient(135deg, #34d399 0%, #059669 100%);
-  --credit-bg: rgba(16, 185, 129, 0.08);
-  --credit-border: rgba(16, 185, 129, 0.25);
-  --credit-glow: 0 0 20px rgba(16, 185, 129, 0.2);
+  --credit-accent: #10b981;
+  --credit-soft: rgba(16, 185, 129, 0.1);
+  --credit-border: rgba(16, 185, 129, 0.22);
 
-  /* Brand & Neutral Accents */
-  --brand-primary: #6366f1;
-  --brand-gradient: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);
-  --brand-bg: rgba(99, 102, 241, 0.1);
-  --warning-primary: #f59e0b;
+  --brand-accent: #6366f1;
+  --brand-soft: rgba(99, 102, 241, 0.1);
 
-  /* Elevation & Blur */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.45);
-  --backdrop-blur: blur(14px);
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-modal: 0 16px 40px rgba(0, 0, 0, 0.5);
 
+  --radius-xs: 4px;
   --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-full: 9999px;
 
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  --font-num: 'JetBrains Mono', monospace;
 }
 
 [data-theme="light"] {
-  --bg-primary: #f1f5f9;
-  --bg-secondary: #ffffff;
-  --bg-card: rgba(255, 255, 255, 0.95);
-  --bg-card-hover: #f8fafc;
-  --bg-glass: rgba(0, 0, 0, 0.02);
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f1f5f9;
+  --bg-subtle: #e2e8f0;
   --bg-input: #f1f5f9;
 
-  --border-subtle: rgba(0, 0, 0, 0.08);
-  --border-medium: rgba(0, 0, 0, 0.14);
+  --border-hairline: rgba(0, 0, 0, 0.06);
+  --border-subtle: rgba(0, 0, 0, 0.12);
   --border-focus: #4f46e5;
 
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #94a3b8;
-  --text-inverse: #ffffff;
+  --text-dim: #cbd5e1;
 
-  --debit-bg: rgba(244, 63, 94, 0.06);
+  --debit-soft: rgba(244, 63, 94, 0.08);
   --debit-border: rgba(244, 63, 94, 0.2);
-  --credit-bg: rgba(16, 185, 129, 0.06);
+  --credit-soft: rgba(16, 185, 129, 0.08);
   --credit-border: rgba(16, 185, 129, 0.2);
 
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.12);
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-modal: 0 16px 40px rgba(0, 0, 0, 0.12);
 }
 
-/* ==========================================================================
-   BASE & RESET
-   ========================================================================== */
-
-* {
+/* Base Setup */
+*, *::before, *::after {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
-body {
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: var(--bg-primary);
+html, body {
+  background-color: var(--bg-app);
   color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
   min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
+  min-height: -webkit-fill-available;
 }
 
-/* Background Ambient Lighting Glows */
-body::before {
-  content: '';
-  position: fixed;
-  top: -150px;
-  left: 20%;
-  width: 500px;
-  height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-body::after {
-  content: '';
-  position: fixed;
-  top: 300px;
-  right: -100px;
-  width: 450px;
-  height: 450px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* App Shell Layout */
+/* App Shell with Mobile Safe Area Support */
 .app-container {
-  position: relative;
-  z-index: 1;
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 20px 24px 80px 24px;
+  padding: 16px 20px 80px 20px;
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-bottom: max(80px, env(safe-area-inset-bottom));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
 }
 
 /* ==========================================================================
-   NAVIGATION BAR & APP HEADER
+   NAVIGATION BAR — Minimalist Executive Header
    ========================================================================== */
 
 .app-navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
-  background: var(--bg-card);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 24px;
-  gap: 16px;
+  padding: 12px 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-subtle);
+  gap: 12px;
 }
 
 .brand-section {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 }
 
 .brand-logo-icon {
-  width: 44px;
-  height: 44px;
-  background: var(--brand-gradient);
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  font-size: 22px;
   font-weight: 700;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  font-size: 15px;
+  color: var(--brand-accent);
 }
 
 .brand-title-wrap h1 {
-  font-size: 1.35rem;
+  font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .brand-badge {
   font-size: 0.65rem;
   font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  background: var(--credit-bg);
-  color: var(--credit-primary);
+  background: var(--credit-soft);
+  color: var(--credit-accent);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
   border: 1px solid var(--credit-border);
-  padding: 2px 7px;
-  border-radius: var(--radius-full);
 }
 
 .brand-subtitle {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+  font-size: 0.72rem;
+  color: var(--text-muted);
 }
 
-/* Tab Navigation Buttons */
+/* Nav Tabs */
 .nav-tabs-wrapper {
   display: flex;
   align-items: center;
   background: var(--bg-input);
-  padding: 4px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-hairline);
 }
 
 .nav-tab-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: transparent;
   border: none;
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 500;
   font-family: inherit;
-  padding: 8px 18px;
-  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: var(--radius-xs);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.15s ease;
 }
 
 .nav-tab-btn:hover {
@@ -237,221 +197,168 @@ body::after {
 }
 
 .nav-tab-btn.active {
-  background: var(--bg-secondary);
+  background: var(--bg-surface-elevated);
   color: var(--text-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .tab-icon {
-  width: 17px;
-  height: 17px;
+  width: 15px;
+  height: 15px;
 }
 
-/* Navbar Actions */
+/* Action Buttons */
 .navbar-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  width: 36px;
+  height: 36px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   cursor: pointer;
   position: relative;
-  transition: all var(--transition-fast);
+  transition: all 0.15s ease;
 }
 
 .btn-icon:hover {
   color: var(--text-primary);
-  border-color: var(--border-medium);
-  background: var(--bg-card-hover);
+  border-color: var(--border-subtle);
+  background: var(--bg-surface-elevated);
 }
 
 .btn-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.notif-badge-pill {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  background: var(--debit-primary);
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--bg-primary);
+  width: 17px;
+  height: 17px;
 }
 
 .btn-primary-action {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: var(--brand-gradient);
-  color: #fff;
+  gap: 6px;
+  background: var(--brand-accent);
+  color: #ffffff;
   border: none;
   font-family: inherit;
   font-weight: 600;
-  font-size: 0.9rem;
-  padding: 9px 18px;
-  border-radius: var(--radius-md);
+  font-size: 0.84rem;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: opacity 0.15s ease;
 }
 
 .btn-primary-action:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  opacity: 0.9;
 }
 
 .btn-primary-action svg {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
 }
 
 .btn-sms-action {
-  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
 }
 
 .btn-sms-action:hover {
-  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+  background: var(--bg-subtle);
 }
 
-/* ==========================================================================
-   TAB CONTENTS & DASHBOARD METRICS
-   ========================================================================== */
-
-.tab-content {
+.btn-label-mobile {
   display: none;
 }
 
-.tab-content.active {
-  display: block;
-  animation: fadeIn 0.25s ease-out;
-}
+/* ==========================================================================
+   DASHBOARD FINANCIAL METRICS (Apple Card / Revolut Minimalist Balance Cards)
+   ========================================================================== */
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Dashboard Overview Cards Grid */
 .overview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 18px;
-  margin-bottom: 26px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
 .overview-card {
-  background: var(--bg-card);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 20px 22px;
-  box-shadow: var(--shadow-sm);
-  transition: border-color var(--transition-fast), transform var(--transition-fast);
-}
-
-.overview-card:hover {
-  border-color: var(--border-medium);
-  transform: translateY(-2px);
-}
-
-.overview-card.balance-highlight {
-  background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.overview-card.balance-highlight::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--brand-gradient);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-subtle);
 }
 
 .card-top-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .card-title-group {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 6px;
 }
 
 .card-icon {
-  width: 22px;
-  height: 22px;
-  color: var(--text-secondary);
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
 }
 
 .card-title {
-  font-size: 0.95rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 .metric-badge {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 600;
-  padding: 3px 9px;
-  border-radius: var(--radius-full);
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.02em;
 }
 
 .badge-credit {
-  background: var(--credit-bg);
-  color: var(--credit-primary);
-  border: 1px solid var(--credit-border);
+  background: var(--credit-soft);
+  color: var(--credit-accent);
 }
 
 .badge-debit {
-  background: var(--debit-bg);
-  color: var(--debit-primary);
-  border: 1px solid var(--debit-border);
+  background: var(--debit-soft);
+  color: var(--debit-accent);
 }
 
-/* Card Numbers */
 .metric-primary-val {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 2rem;
+  font-family: var(--font-num);
+  font-size: 1.7rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  margin-bottom: 14px;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 .card-substats-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 14px;
+  border-top: 1px solid var(--border-hairline);
+  padding-top: 10px;
 }
 
 .substat-col {
@@ -460,27 +367,30 @@ body::after {
 }
 
 .substat-label {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
-  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 1px;
 }
 
 .substat-val {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.05rem;
+  font-family: var(--font-num);
+  font-size: 0.95rem;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .debit-text {
-  color: var(--debit-primary);
+  color: var(--debit-accent);
 }
 
 .credit-text {
-  color: var(--credit-primary);
+  color: var(--credit-accent);
 }
 
 /* ==========================================================================
-   FILTER TOOLBAR & SEARCH
+   FILTER TOOLBAR & MOBILE COLUMN SELECTOR
    ========================================================================== */
 
 .filter-toolbar {
@@ -488,68 +398,69 @@ body::after {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
+  gap: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
   border-radius: var(--radius-md);
-  padding: 12px 18px;
-  margin-bottom: 24px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
 }
 
 .filter-pill-group {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
 .filter-btn {
   background: transparent;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid transparent;
   color: var(--text-secondary);
   font-family: inherit;
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
+  padding: 5px 11px;
+  border-radius: var(--radius-xs);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.15s ease;
 }
 
 .filter-btn:hover {
   color: var(--text-primary);
-  border-color: var(--border-medium);
+  background: var(--bg-subtle);
 }
 
 .filter-btn.active {
-  background: var(--brand-bg);
-  border-color: var(--brand-primary);
-  color: #fff;
+  background: var(--bg-surface-elevated);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .custom-date-container {
   display: none;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .date-input {
   background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-hairline);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 0.8rem;
-  padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  padding: 5px 8px;
+  border-radius: var(--radius-xs);
   outline: none;
 }
 
 .filter-search-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex: 1;
-  max-width: 440px;
+  max-width: 420px;
   justify-content: flex-end;
 }
 
@@ -560,25 +471,24 @@ body::after {
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 10px;
   top: 50%;
   transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   color: var(--text-muted);
 }
 
 .search-field {
   width: 100%;
   background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-hairline);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 0.85rem;
-  padding: 8px 12px 8px 36px;
-  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  padding: 6px 10px 6px 32px;
+  border-radius: var(--radius-xs);
   outline: none;
-  transition: border-color var(--transition-fast);
 }
 
 .search-field:focus {
@@ -587,197 +497,194 @@ body::after {
 
 .category-select {
   background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-hairline);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 0.85rem;
-  padding: 8px 12px;
-  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  padding: 6px 10px;
+  border-radius: var(--radius-xs);
   outline: none;
+}
+
+/* Mobile Segmented Switcher (Visible on Phones to toggle Debit / Credit / Both) */
+.mobile-view-switcher {
+  display: none;
+  background: var(--bg-input);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  margin-bottom: 16px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+
+.view-segment-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 7px 4px;
+  border-radius: var(--radius-xs);
   cursor: pointer;
+  text-align: center;
+}
+
+.view-segment-btn.active {
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 /* ==========================================================================
-   DAY GROUP CARDS & DUAL COLUMN SECTION
-   Strict requirement: Left Column = Debit, Right Column = Credit,
-   Totals at bottom of each day's list!
+   DAILY TRANSACTION CARDS & CLEAN DUAL COLUMN LAYOUT
    ========================================================================== */
 
 .day-group-card {
-  background: var(--bg-card);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  margin-bottom: 24px;
-  box-shadow: var(--shadow-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
   overflow: hidden;
-  transition: border-color var(--transition-fast);
+  box-shadow: var(--shadow-subtle);
 }
 
 .day-group-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 22px;
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.015);
+  border-bottom: 1px solid var(--border-hairline);
 }
 
 .day-title-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .calendar-icon {
-  width: 19px;
-  height: 19px;
-  color: var(--brand-primary);
+  width: 15px;
+  height: 15px;
+  color: var(--text-muted);
 }
 
 .day-heading {
-  font-size: 1.05rem;
+  font-size: 0.92rem;
   font-weight: 600;
-  color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .day-quick-summary {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85rem;
+  gap: 8px;
+  font-family: var(--font-num);
+  font-size: 0.8rem;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .day-quick-stat.debit {
-  color: var(--debit-primary);
-  background: var(--debit-bg);
-  padding: 3px 8px;
-  border-radius: 6px;
+  color: var(--debit-accent);
 }
 
 .day-quick-stat.credit {
-  color: var(--credit-primary);
-  background: var(--credit-bg);
-  padding: 3px 8px;
-  border-radius: 6px;
+  color: var(--credit-accent);
 }
 
-/* DUAL COLUMNS: Two clearly separated sections */
+/* Dual Column Split */
 .dual-column-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-hairline);
 }
 
 .column-section {
-  padding: 16px 20px;
-  min-height: 120px;
+  padding: 14px 16px;
+  min-height: 100px;
 }
 
 .column-debit {
-  background: linear-gradient(180deg, rgba(244, 63, 94, 0.02) 0%, transparent 100%);
-  border-right: 1px solid var(--border-subtle);
-}
-
-.column-credit {
-  background: linear-gradient(180deg, rgba(16, 185, 129, 0.02) 0%, transparent 100%);
+  border-right: 1px solid var(--border-hairline);
 }
 
 .column-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 12px;
-  margin-bottom: 12px;
-  border-bottom: 1px dashed var(--border-subtle);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-hairline);
 }
 
 .column-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.88rem;
+  gap: 6px;
+  font-size: 0.76rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.column-header-debit .column-title {
-  color: var(--debit-primary);
-}
-
-.column-header-credit .column-title {
-  color: var(--credit-primary);
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
 }
 
 .type-indicator-dot {
-  width: 9px;
-  height: 9px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
 }
 
 .type-indicator-dot.debit {
-  background: var(--debit-primary);
-  box-shadow: 0 0 8px var(--debit-primary);
+  background: var(--debit-accent);
 }
 
 .type-indicator-dot.credit {
-  background: var(--credit-primary);
-  box-shadow: 0 0 8px var(--credit-primary);
+  background: var(--credit-accent);
 }
 
 .column-subtotal {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-family: var(--font-num);
+  font-weight: 600;
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .transaction-items-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .no-tx-placeholder {
   text-align: center;
-  padding: 24px 12px;
+  padding: 24px 10px;
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-style: italic;
 }
 
-/* Transaction Card Item */
+/* Individual Transaction Card */
 .tx-item-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
-  transition: all var(--transition-fast);
-  position: relative;
+  background: var(--bg-input);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  transition: border-color 0.15s ease;
 }
 
 .tx-item-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
-  border-color: var(--border-medium);
-}
-
-.tx-card-debit:hover {
-  border-color: var(--debit-border);
-}
-
-.tx-card-credit:hover {
-  border-color: var(--credit-border);
+  border-color: var(--border-subtle);
 }
 
 .tx-card-main {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 .tx-card-info {
@@ -788,13 +695,13 @@ body::after {
 .tx-merchant-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 6px;
+  margin-bottom: 3px;
 }
 
 .tx-merchant-name {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -802,38 +709,39 @@ body::after {
 }
 
 .tx-type-badge {
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: 0.62rem;
+  font-weight: 600;
   text-transform: uppercase;
-  padding: 1px 6px;
-  border-radius: 4px;
-  flex-shrink: 0;
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.03em;
 }
 
 .tx-meta-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 6px;
+  margin-bottom: 3px;
   flex-wrap: wrap;
 }
 
 .tx-source-tag, .tx-category-tag {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.72rem;
+  gap: 3px;
+  font-size: 0.7rem;
   color: var(--text-secondary);
-  background: var(--bg-input);
-  padding: 2px 7px;
-  border-radius: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
 }
 
 .tx-date-row {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.73rem;
+  gap: 4px;
+  font-size: 0.72rem;
   color: var(--text-muted);
 }
 
@@ -849,13 +757,14 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 6px;
+  gap: 4px;
 }
 
 .tx-amount-val {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.15rem;
+  font-family: var(--font-num);
+  font-size: 1.05rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
@@ -863,50 +772,36 @@ body::after {
   display: flex;
   align-items: center;
   gap: 4px;
-  opacity: 0.75;
-  transition: opacity var(--transition-fast);
-}
-
-.tx-item-card:hover .tx-action-buttons {
-  opacity: 1;
 }
 
 .tx-action-buttons .btn-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  padding: 5px;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border-radius: var(--radius-xs);
 }
 
 .tx-action-buttons .btn-icon svg {
-  width: 14px;
-  height: 14px;
-}
-
-.tiny-icon {
   width: 13px;
   height: 13px;
-  display: inline-block;
-  vertical-align: middle;
 }
 
 /* ==========================================================================
-   DAILY TOTALS FOOTER (Strict requirement: Appears at bottom of each day)
-   Formula: Net Amount = Total Credit − Total Debit
+   DAILY TOTALS FOOTER (Minimalist Financial Summary)
    ========================================================================== */
 
 .day-totals-footer {
-  padding: 16px 22px;
-  background: rgba(0, 0, 0, 0.15);
-  border-top: 1px solid var(--border-subtle);
+  padding: 12px 18px;
+  background: rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--border-hairline);
 }
 
 .day-formula-label {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .formula-text {
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -916,98 +811,312 @@ body::after {
 .day-totals-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1.2fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 .day-total-box {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 10px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
 }
 
 .day-total-box.debit-box {
-  border-left: 3px solid var(--debit-primary);
+  border-left: 3px solid var(--debit-accent);
 }
 
 .day-total-box.credit-box {
-  border-left: 3px solid var(--credit-primary);
+  border-left: 3px solid var(--credit-accent);
 }
 
 .day-total-box.net-box.net-positive {
-  border-left: 3px solid var(--credit-primary);
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(16, 185, 129, 0.06) 100%);
+  border-left: 3px solid var(--credit-accent);
 }
 
 .day-total-box.net-box.net-negative {
-  border-left: 3px solid var(--debit-primary);
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(244, 63, 94, 0.06) 100%);
+  border-left: 3px solid var(--debit-accent);
 }
 
 .box-label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   margin-bottom: 2px;
 }
 
 .box-value {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.18rem;
+  font-family: var(--font-num);
+  font-size: 1.1rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Empty State */
 .empty-state-card {
   text-align: center;
-  padding: 60px 20px;
-  background: var(--bg-card);
-  border: 1px dashed var(--border-medium);
-  border-radius: var(--radius-lg);
-  margin: 30px 0;
+  padding: 48px 20px;
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin: 20px 0;
 }
 
 .empty-state-card svg {
-  width: 52px;
-  height: 52px;
+  width: 40px;
+  height: 40px;
   color: var(--text-muted);
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .empty-state-card h3 {
-  font-size: 1.2rem;
-  margin-bottom: 6px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .empty-state-card p {
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin-bottom: 20px;
+  font-size: 0.85rem;
+  max-width: 400px;
+  margin: 0 auto 16px auto;
 }
 
-/* Responsive adjustments */
-@media (max-width: 900px) {
+/* ==========================================================================
+   MOBILE RESPONSIVENESS — iPhone & Phone specific styles
+   ========================================================================== */
+
+/* ==========================================================================
+   MOBILE BOTTOM NAVIGATION BAR (iOS / Native App Feel)
+   ========================================================================== */
+
+.mobile-bottom-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: rgba(15, 20, 28, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid var(--border-hairline);
+  padding: 6px 16px calc(6px + env(safe-area-inset-bottom)) 16px;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .mobile-bottom-bar {
+  background: rgba(255, 255, 255, 0.94);
+  border-top: 1px solid var(--border-hairline);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.mobile-tab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 52px;
+}
+
+.mobile-tab-btn svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.mobile-tab-btn.active {
+  color: var(--brand-accent);
+  font-weight: 600;
+}
+
+.mobile-tab-btn.active svg {
+  transform: scale(1.08);
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVENESS — iPhone & Phone specific styles
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .app-container {
+    padding: 10px 12px calc(80px + env(safe-area-inset-bottom)) 12px;
+  }
+
+  /* Show native mobile bottom bar */
+  .mobile-bottom-bar {
+    display: flex;
+  }
+
+  /* Compact single-row mobile navbar */
+  .app-navbar {
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .brand-logo-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+
+  .brand-title-wrap h1 {
+    font-size: 0.95rem;
+  }
+
+  .brand-badge, .brand-subtitle {
+    display: none !important;
+  }
+
+  /* Hide desktop header tabs on mobile */
+  .nav-tabs-wrapper {
+    display: none !important;
+  }
+
+  /* Button labels on mobile */
+  .btn-label-desktop {
+    display: none !important;
+  }
+
+  .btn-label-mobile {
+    display: inline !important;
+  }
+
+  .header-desktop-only {
+    display: none !important;
+  }
+
+  .btn-primary-action {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    gap: 4px;
+  }
+
+  .btn-sms-action {
+    padding: 6px 8px;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Financial Overview: Sleek Mobile Layout */
+  .overview-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .overview-card {
+    padding: 12px 14px;
+  }
+
+  .metric-primary-val {
+    font-size: 1.45rem;
+    margin-bottom: 8px;
+  }
+
+  /* Horizontally scrollable filter pills */
+  .filter-toolbar {
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+
+  .filter-pill-group {
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    gap: 6px;
+  }
+
+  .filter-btn {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    font-size: 0.75rem;
+  }
+
+  .filter-search-group {
+    width: 100%;
+    max-width: 100%;
+    gap: 6px;
+  }
+
+  .search-field, .category-select {
+    font-size: 0.78rem;
+    padding: 6px 8px;
+  }
+
+  /* Show the mobile view switcher */
+  .mobile-view-switcher {
+    display: grid;
+  }
+
+  /* When on mobile, allow switching columns or stacking cleanly */
   .dual-column-container {
     grid-template-columns: 1fr;
   }
+
+  .column-section {
+    padding: 10px 12px;
+  }
+
   .column-debit {
     border-right: none;
-    border-bottom: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-hairline);
   }
+
+  /* Mobile column filter classes */
+  .hide-on-mobile-filter {
+    display: none !important;
+  }
+
+  /* Day Totals Footer on Phone */
   .day-totals-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
   }
-  .app-navbar {
-    flex-direction: column;
-    align-items: stretch;
+
+  .day-total-box.net-box {
+    grid-column: span 2;
   }
-  .nav-tabs-wrapper {
-    overflow-x: auto;
+
+  .day-total-box {
+    padding: 6px 10px;
   }
-  .navbar-actions {
-    justify-content: flex-end;
+
+  .box-value {
+    font-size: 0.95rem;
+  }
+
+  .day-group-header {
+    padding: 10px 12px;
+  }
+
+  .day-totals-footer {
+    padding: 8px 12px;
   }
 }
