@@ -72,13 +72,20 @@ class StorageManager {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          // Strictly purge any dummy/demo/sample IDs from earlier runs
+          const DEMO_MERCHANTS = [
+            'Corporate Salary', 'Apartment Rent', 'Amazon Shopping', 'Swiggy Food',
+            'Swiggy Cafe', 'Apollo Pharmacy', 'Refund & Cash Credit', 'Zomato Order',
+            'Uber Ride', 'Flipkart Electronics', 'DMart Supermarket', 'Electricity Bill'
+          ];
+
+          // Strictly purge any dummy/demo/sample IDs or demo merchants from earlier runs
           const cleaned = parsed.filter(t => 
             t && t.id && 
             !t.id.startsWith('tx-sep-') && 
             !t.id.startsWith('tx-oct-') && 
             !t.id.startsWith('tx-demo-') && 
-            !t.id.startsWith('demo-')
+            !t.id.startsWith('demo-') &&
+            !DEMO_MERCHANTS.includes(t.merchant)
           );
           if (cleaned.length !== parsed.length) {
             this.saveToStorage(cleaned);

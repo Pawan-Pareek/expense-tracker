@@ -10,9 +10,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="ExpenseTracker">
-  <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/components.css">
+  <!-- Stylesheets (v2.0 cache buster) -->
+  <link rel="stylesheet" href="css/styles.css?v=2.0">
+  <link rel="stylesheet" href="css/components.css?v=2.0">
 </head>
 <body>
   <div class="app-container">
@@ -211,7 +211,7 @@
     </main>
 
     <!-- TAB 2: MONTHLY SUMMARY & HISTORY -->
-    <section class="tab-content" id="tab-monthly" aria-label="Monthly Financial Summary">
+    <section class="tab-content" id="tab-monthly" style="display: none;" aria-label="Monthly Financial Summary">
       <!-- Month Selector & Action Bar -->
       <div class="monthly-header-bar">
         <div class="month-picker-wrap">
@@ -281,7 +281,7 @@
     </section>
 
     <!-- TAB 3: CHARTS & REPORTS -->
-    <section class="tab-content" id="tab-reports" aria-label="Visual Reports & Trends">
+    <section class="tab-content" id="tab-reports" style="display: none;" aria-label="Visual Reports & Trends">
       <div class="reports-charts-grid">
         <!-- Monthly Debit vs Credit Bar Chart -->
         <div class="chart-card">
@@ -681,12 +681,19 @@
   <!-- Toast Notification Container -->
   <div id="toast-container" aria-live="polite"></div>
 
-  <!-- Scripts (Strict Loading Order) -->
-  <script src="js/storage.js"></script>
-  <script src="js/smsParser.js"></script>
-  <script src="js/notifications.js"></script>
-  <script src="js/reports.js"></script>
-  <script src="js/charts.js"></script>
-  <script src="js/app.js"></script>
+  <!-- Scripts (Strict Loading Order with v2.0 Cache Busting) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((reg) => reg.update());
+      });
+    }
+  </script>
+  <script src="js/storage.js?v=2.0"></script>
+  <script src="js/smsParser.js?v=2.0"></script>
+  <script src="js/notifications.js?v=2.0"></script>
+  <script src="js/reports.js?v=2.0"></script>
+  <script src="js/charts.js?v=2.0"></script>
+  <script src="js/app.js?v=2.0"></script>
 </body>
 </html>

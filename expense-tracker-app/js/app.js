@@ -199,7 +199,13 @@ document.addEventListener('DOMContentLoaded', () => {
     state.activeTab = tabName;
     el.tabBtns.forEach((b) => b.classList.toggle('active', b.getAttribute('data-tab') === tabName));
     mobileTabBtns.forEach((b) => b.classList.toggle('active', b.getAttribute('data-tab') === tabName));
-    el.tabContents.forEach((c) => c.classList.toggle('active', c.id === `tab-${tabName}`));
+    
+    // Enforce tab separation by explicitly toggling both class and inline display
+    el.tabContents.forEach((c) => {
+      const isTarget = c.id === `tab-${tabName}`;
+      c.classList.toggle('active', isTarget);
+      c.style.display = isTarget ? 'block' : 'none';
+    });
 
     if (tabName === 'monthly') {
       populateMonthSelector();
@@ -1234,8 +1240,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Initial render
-  renderDashboard();
+  // Initial render: show dashboard and strictly hide other tabs
+  switchTab('dashboard');
   updateNotifBadge();
   window.ExpenseStorage.syncWithServer().catch(() => {});
 });
