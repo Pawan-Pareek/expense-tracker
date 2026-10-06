@@ -1005,6 +1005,7 @@
   .drawer-panel {
     max-width: 100%;
     width: 100%;
+    padding-top: max(50px, env(safe-area-inset-top));
   }
   #toast-container {
     left: 12px;

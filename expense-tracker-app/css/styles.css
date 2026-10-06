@@ -980,7 +980,11 @@ html, body {
 
 @media (max-width: 768px) {
   .app-container {
-    padding: 10px 12px calc(80px + env(safe-area-inset-bottom)) 12px;
+    /* Safe Area Inset support for iPhone Dynamic Island, Notch & Status Bar */
+    padding-top: max(54px, calc(env(safe-area-inset-top) + 12px));
+    padding-bottom: calc(85px + env(safe-area-inset-bottom));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
   }
 
   /* Show native mobile bottom bar */
