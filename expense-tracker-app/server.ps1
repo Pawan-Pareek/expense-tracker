@@ -1,5 +1,5 @@
 # Expense Tracker Local Hub & Sync Server in PowerShell using TcpListener
-# 100% Free, Zero Cloud Cost, Bi-directional Sync for Android App & Web Browser
+# 100% Free, Zero Cloud Cost, Bi-directional Sync for Mobile (Phone) & Laptop (PC)
 # Binds to 0.0.0.0 without requiring Windows Admin URL reservation!
 
 param (
@@ -13,17 +13,31 @@ if (-not [System.IO.Directory]::Exists($dataDir)) {
 }
 $dbFile = [System.IO.Path]::Combine($dataDir, "transactions.json")
 
-# Initialize DB file if not exists
-if (-not [System.IO.File]::Exists($dbFile)) {
-    [System.IO.File]::WriteAllText($dbFile, "[]")
+# Initialize DB file if not exists or if empty
+if (-not [System.IO.File]::Exists($dbFile) -or [string]::IsNullOrWhiteSpace([System.IO.File]::ReadAllText($dbFile))) {
+    [System.IO.File]::WriteAllText($dbFile, "[]", [System.Text.Encoding]::UTF8)
 }
 
-# Determine local IP address
-$localIp = "localhost"
-try {
-    $ipObj = Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -notlike "*Loopback*" -and $_.IPAddress -notlike "169.254*" } | Select-Object -First 1
-    if ($ipObj) { $localIp = $ipObj.IPAddress }
-} catch {}
+function Get-LocalIpAddress {
+    try {
+        $primary = Get-NetIPAddress -AddressFamily IPv4 | Where-Object {
+            ($_.InterfaceAlias -like '*Wi-Fi*' -or $_.InterfaceAlias -like '*Ethernet*') -and
+            $_.IPAddress -notmatch '^169\.254\.' -and
+            $_.IPAddress -ne '127.0.0.1'
+        } | Select-Object -First 1
+        if ($primary) { return $primary.IPAddress }
+
+        $fallback = Get-NetIPAddress -AddressFamily IPv4 | Where-Object {
+            $_.InterfaceAlias -notlike '*Loopback*' -and
+            $_.IPAddress -notmatch '^169\.254\.' -and
+            $_.IPAddress -ne '127.0.0.1'
+        } | Select-Object -First 1
+        if ($fallback) { return $fallback.IPAddress }
+    } catch {}
+    return "localhost"
+}
+
+$localIp = Get-LocalIpAddress
 
 $mimeTypes = @{
     ".html" = "text/html; charset=utf-8"
@@ -40,11 +54,11 @@ $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any, $
 try {
     $listener.Start()
     Write-Host "=========================================================="
-    Write-Host "  EXPENSE TRACKER - LOCAL SYNC HUB & WEB APP"
+    Write-Host "  EXPENSE TRACKER - MOBILE & LAPTOP SYNC HUB"
     Write-Host "=========================================================="
-    Write-Host "Web App on PC:       http://localhost:$Port/"
-    Write-Host "Android Sync URL:    http://${localIp}:$Port/api/sync"
-    Write-Host "Local Hub IP:        $localIp"
+    Write-Host "Open on this Laptop:    http://localhost:$Port/"
+    Write-Host "Open on Mobile Phone:   http://${localIp}:$Port/"
+    Write-Host "Sync API Endpoint:      http://${localIp}:$Port/api/sync"
     Write-Host "=========================================================="
 } catch {
     Write-Error "Failed to start listener on port $Port : $_"
@@ -103,10 +117,12 @@ while ($true) {
 
         # 1. API: Server Info
         if ($urlPath -eq "/api/info") {
+            $currentIp = Get-LocalIpAddress
             $infoObj = @{
-                localIp = $localIp
+                localIp = $currentIp
                 port = $Port
-                syncUrl = "http://${localIp}:$Port/api/sync"
+                appUrl = "http://${currentIp}:$Port/"
+                syncUrl = "http://${currentIp}:$Port/api/sync"
                 status = "online"
                 serverTime = (Get-Date).ToString("o")
             } | ConvertTo-Json
@@ -119,9 +135,10 @@ while ($true) {
             continue
         }
 
-        # 2. API: Get Transactions
-        if ($urlPath -eq "/api/transactions" -and $method -eq "GET") {
+        # 2. API: Get Transactions or Sync (GET)
+        if (($urlPath -eq "/api/transactions" -or $urlPath -eq "/api/sync") -and $method -eq "GET") {
             $jsonContent = if ([System.IO.File]::Exists($dbFile)) { [System.IO.File]::ReadAllText($dbFile) } else { "[]" }
+            if ([string]::IsNullOrWhiteSpace($jsonContent)) { $jsonContent = "[]" }
             $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($jsonContent)
             $header = "HTTP/1.1 200 OK`r`n${corsHeaders}Content-Type: application/json; charset=utf-8`r`nContent-Length: $($bodyBytes.Length)`r`nConnection: close`r`n`r`n"
             $hBytes = [System.Text.Encoding]::UTF8.GetBytes($header)
@@ -131,38 +148,69 @@ while ($true) {
             continue
         }
 
-        # 3. API: Sync Transactions (POST)
-        if ($urlPath -eq "/api/sync" -and $method -eq "POST") {
+        # 3. API: Two-Way Synchronization (POST)
+        if (($urlPath -eq "/api/sync" -or $urlPath -eq "/api/transactions") -and $method -eq "POST") {
             try {
-                $parsedBody = $body | ConvertFrom-Json
-                $incomingList = if ($parsedBody -is [array]) { $parsedBody } elseif ($parsedBody.transactions) { $parsedBody.transactions } else { @($parsedBody) }
+                $parsedBody = if (-not [string]::IsNullOrWhiteSpace($body)) { $body | ConvertFrom-Json } else { @{} }
+                
+                $incomingList = @()
+                $deletedIds = @()
+                $isReplace = $false
+
+                if ($parsedBody -is [array]) {
+                    $incomingList = $parsedBody
+                } elseif ($parsedBody) {
+                    if ($parsedBody.transactions) { $incomingList = @($parsedBody.transactions) }
+                    if ($parsedBody.deletedIds) { $deletedIds = @($parsedBody.deletedIds) }
+                    if ($parsedBody.action -eq "replace" -or $parsedBody.mode -eq "replace") { $isReplace = $true }
+                }
 
                 $existingJson = if ([System.IO.File]::Exists($dbFile)) { [System.IO.File]::ReadAllText($dbFile) } else { "[]" }
-                $existingList = if ([string]::IsNullOrWhiteSpace($existingJson) -or $existingJson -eq "[]") { @() } else { @($existingJson | ConvertFrom-Json) }
+                if ([string]::IsNullOrWhiteSpace($existingJson)) { $existingJson = "[]" }
+                $existingList = @($existingJson | ConvertFrom-Json)
 
-                $txMap = @{}
-                foreach ($item in $existingList) {
-                    if ($item.id) { $txMap[$item.id] = $item }
-                }
-
-                $newCount = 0
-                foreach ($item in $incomingList) {
-                    if ($item.id) {
-                        if (-not $txMap.ContainsKey($item.id)) { $newCount++ }
-                        $txMap[$item.id] = $item
+                if ($isReplace) {
+                    # Complete replacement mode
+                    $mergedList = @($incomingList)
+                } else {
+                    # Smart 2-Way Merge:
+                    # 1. Start with existing items not marked deleted
+                    $txMap = @{}
+                    foreach ($item in $existingList) {
+                        if ($item.id -and -not ($deletedIds -contains $item.id)) {
+                            $txMap[$item.id] = $item
+                        }
                     }
+
+                    # 2. Merge incoming items
+                    foreach ($item in $incomingList) {
+                        if ($item.id -and -not ($deletedIds -contains $item.id)) {
+                            if (-not $txMap.ContainsKey($item.id)) {
+                                $txMap[$item.id] = $item
+                            } else {
+                                # If item exists on both, keep the one with newer updatedAt
+                                $current = $txMap[$item.id]
+                                $incomingUpdated = if ($item.updatedAt) { [string]$item.updatedAt } else { "" }
+                                $currentUpdated = if ($current.updatedAt) { [string]$current.updatedAt } else { "" }
+                                if ($incomingUpdated -ge $currentUpdated) {
+                                    $txMap[$item.id] = $item
+                                }
+                            }
+                        }
+                    }
+
+                    $mergedList = @($txMap.Values)
                 }
 
-                $mergedList = @($txMap.Values)
                 $savedJson = $mergedList | ConvertTo-Json -Depth 6
-                [System.IO.File]::WriteAllText($dbFile, $savedJson)
+                [System.IO.File]::WriteAllText($dbFile, $savedJson, [System.Text.Encoding]::UTF8)
 
                 $resultObj = @{
                     success = $true
                     syncedCount = $incomingList.Count
-                    newAdded = $newCount
                     total = $mergedList.Count
                     transactions = $mergedList
+                    timestamp = (Get-Date).ToString("o")
                 } | ConvertTo-Json -Depth 6
 
                 $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($resultObj)
@@ -182,117 +230,7 @@ while ($true) {
             continue
         }
 
-        # 4. API: Webhook (for MacroDroid, Automate, or SMS Forwarder on Android)
-        if ($urlPath.StartsWith("/api/webhook")) {
-            try {
-                $rawMsg = ""
-                if ($rawUrl.Contains("?")) {
-                    $qStr = $rawUrl.Substring($rawUrl.IndexOf("?") + 1)
-                    $pairs = $qStr.Split("&")
-                    foreach ($pair in $pairs) {
-                        $kv = $pair.Split("=")
-                        if ($kv[0].ToLower() -eq "msg" -or $kv[0].ToLower() -eq "text") {
-                            $rawMsg = [System.Uri]::UnescapeDataString($kv[1]).Replace("+", " ")
-                            break
-                        }
-                    }
-                }
-                if ([string]::IsNullOrWhiteSpace($rawMsg) -and -not [string]::IsNullOrWhiteSpace($body)) {
-                    try {
-                        $p = $body | ConvertFrom-Json
-                        $rawMsg = if ($p.text) { $p.text } elseif ($p.msg) { $p.msg } else { $body }
-                    } catch {
-                        $rawMsg = $body
-                    }
-                }
-
-                if (-not [string]::IsNullOrWhiteSpace($rawMsg)) {
-                    $cleanMsg = $rawMsg.Trim()
-                    $lowerMsg = $cleanMsg.ToLower()
-
-                    $isCredit = $lowerMsg -match "credited|received|refund|cashback|salary"
-                    $type = if ($isCredit) { "credit" } else { "debit" }
-
-                    # Robust Amount extraction
-                    $amt = 0.0
-                    if ($cleanMsg -match "(?:rs\.?|inr|₹)\s*([\d,]+\.?\d*)") {
-                        $amtStr = $matches[1].Replace(",", "")
-                        [double]::TryParse($amtStr, [ref]$amt) | Out-Null
-                    } elseif ($cleanMsg -match "(?:debited|spent|paid|credited|received|of)\s*(?:rs\.?|inr|₹)?\s*([\d,]+\.?\d*)") {
-                        $amtStr = $matches[1].Replace(",", "")
-                        [double]::TryParse($amtStr, [ref]$amt) | Out-Null
-                    }
-
-                    if ($amt -gt 0) {
-                        $txId = "tx-webhook-" + [System.DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
-                        $merchant = "UPI / Bank Payment"
-                        if ($cleanMsg -match "(?:to|at|from)\s+([A-Za-z0-9\s&'-]+)") {
-                            $merchant = $matches[1].Trim()
-                        }
-
-                        $source = "Android Phone"
-                        if ($lowerMsg.Contains("gpay") -or $lowerMsg.Contains("google pay")) { $source = "Google Pay" }
-                        elseif ($lowerMsg.Contains("phonepe")) { $source = "PhonePe" }
-                        elseif ($lowerMsg.Contains("paytm")) { $source = "Paytm" }
-                        elseif ($lowerMsg.Contains("hdfc")) { $source = "HDFC Bank" }
-                        elseif ($lowerMsg.Contains("sbi")) { $source = "SBI Bank" }
-                        elseif ($lowerMsg.Contains("icici")) { $source = "ICICI Bank" }
-
-                        $newTx = @{
-                            id = $txId
-                            type = $type
-                            amount = $amt
-                            merchant = $merchant
-                            category = if ($type -eq "credit") { "Salary" } else { "General" }
-                            source = $source
-                            date = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss")
-                            notes = "Auto-captured via Android Webhook"
-                            rawSms = $cleanMsg
-                        }
-
-                        $existingJson = if ([System.IO.File]::Exists($dbFile)) { [System.IO.File]::ReadAllText($dbFile) } else { "[]" }
-                        $parsedExisting = if ([string]::IsNullOrWhiteSpace($existingJson) -or $existingJson -eq "[]") { @() } else { @($existingJson | ConvertFrom-Json) }
-                        $list = New-Object System.Collections.ArrayList
-                        if ($parsedExisting) {
-                            foreach ($item in $parsedExisting) { [void]$list.Add($item) }
-                        }
-                        [void]$list.Add($newTx)
-                        $savedJson = $list | ConvertTo-Json -Depth 6
-                        [System.IO.File]::WriteAllText($dbFile, $savedJson)
-
-                        $respObj = @{ success = $true; message = "Transaction auto-logged!"; transaction = $newTx } | ConvertTo-Json
-                        $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($respObj)
-                        $header = "HTTP/1.1 200 OK`r`n${corsHeaders}Content-Type: application/json; charset=utf-8`r`nContent-Length: $($bodyBytes.Length)`r`nConnection: close`r`n`r`n"
-                        $hBytes = [System.Text.Encoding]::UTF8.GetBytes($header)
-                        $stream.Write($hBytes, 0, $hBytes.Length)
-                        $stream.Write($bodyBytes, 0, $bodyBytes.Length)
-                        $client.Close()
-                        continue
-                    }
-                }
-
-                # If amount could not be detected
-                $failObj = @{ success = $false; error = "Could not detect amount in message"; received = $rawMsg } | ConvertTo-Json
-                $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($failObj)
-                $header = "HTTP/1.1 400 Bad Request`r`n${corsHeaders}Content-Type: application/json; charset=utf-8`r`nContent-Length: $($bodyBytes.Length)`r`nConnection: close`r`n`r`n"
-                $hBytes = [System.Text.Encoding]::UTF8.GetBytes($header)
-                $stream.Write($hBytes, 0, $hBytes.Length)
-                $stream.Write($bodyBytes, 0, $bodyBytes.Length)
-                $client.Close()
-                continue
-            } catch {
-                $errObj = @{ success = $false; error = $_.Exception.Message } | ConvertTo-Json
-                $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($errObj)
-                $header = "HTTP/1.1 500 Internal Server Error`r`n${corsHeaders}Content-Type: application/json; charset=utf-8`r`nContent-Length: $($bodyBytes.Length)`r`nConnection: close`r`n`r`n"
-                $hBytes = [System.Text.Encoding]::UTF8.GetBytes($header)
-                $stream.Write($hBytes, 0, $hBytes.Length)
-                $stream.Write($bodyBytes, 0, $bodyBytes.Length)
-                $client.Close()
-                continue
-            }
-        }
-
-        # 4. Static Files
+        # 4. Static Files (HTML, JS, CSS, JSON, Icons)
         $filePathRel = if ($urlPath -eq "/" -or [string]::IsNullOrWhiteSpace($urlPath)) { "/index.html" } else { $urlPath }
         $filePath = [System.IO.Path]::Combine($Path, $filePathRel.TrimStart("/").Replace("/", [System.IO.Path]::DirectorySeparatorChar))
 

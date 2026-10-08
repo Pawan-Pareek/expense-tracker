@@ -76,15 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
     reportsCategoryList: document.getElementById('reports-category-list'),
 
     // Modals & Drawers
-    smsModal: document.getElementById('sms-modal'),
-    smsOpenBtn: document.getElementById('open-sms-modal-btn'),
-    smsCloseBtn: document.getElementById('close-sms-modal-btn'),
-    smsTextInput: document.getElementById('sms-text-input'),
-    smsParseBtn: document.getElementById('sms-parse-btn'),
-    smsPreviewCard: document.getElementById('sms-preview-card'),
-    smsApplyBtn: document.getElementById('sms-apply-btn'),
-    smsSampleChips: document.getElementById('sms-sample-chips'),
-
     txModal: document.getElementById('tx-modal'),
     txModalTitle: document.getElementById('tx-modal-title'),
     txOpenBtn: document.getElementById('open-tx-modal-btn'),
@@ -178,12 +169,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  const mobSmsBtn = document.getElementById('mob-tab-sms');
-  if (mobSmsBtn) {
-    mobSmsBtn.addEventListener('click', () => {
-      if (el.smsModal) {
-        el.smsModal.classList.add('active');
-        if (el.smsTextInput) el.smsTextInput.focus();
+  const mobSyncBtn = document.getElementById('mob-tab-sync');
+  if (mobSyncBtn) {
+    mobSyncBtn.addEventListener('click', async () => {
+      // Trigger sync directly
+      window.NotificationManager.showToast('Syncing data...', 'info');
+      const res = await window.ExpenseStorage.syncWithServer();
+      if (res && res.success) {
+        window.NotificationManager.showToast(`Auto-Sync successful! ${res.total} transactions synchronized.`, 'success');
+      } else {
+        window.NotificationManager.showToast('Sync failed.', 'warning');
       }
     });
   }
@@ -731,127 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ==========================================================================
-     7. AUTOMATIC SMS PARSER & DETECTION MODAL
-     ========================================================================== */
-
-  // Populate SMS Sample Chips
-  if (el.smsSampleChips && window.SMS_SAMPLES) {
-    el.smsSampleChips.innerHTML = window.SMS_SAMPLES.map((s, idx) => `
-      <button class="sample-chip" data-idx="${idx}">${escapeHtml(s.name)}</button>
-    `).join('');
-
-    el.smsSampleChips.querySelectorAll('.sample-chip').forEach((chip) => {
-      chip.addEventListener('click', () => {
-        const idx = parseInt(chip.getAttribute('data-idx'), 10);
-        const sample = window.SMS_SAMPLES[idx];
-        if (sample) {
-          el.smsTextInput.value = sample.text;
-          triggerSMSParsing();
-        }
-      });
-    });
-  }
-
-  if (el.smsOpenBtn) {
-    el.smsOpenBtn.addEventListener('click', () => {
-      el.smsModal.classList.add('active');
-      el.smsTextInput.focus();
-    });
-  }
-
-  if (el.smsCloseBtn) {
-    el.smsCloseBtn.addEventListener('click', () => {
-      el.smsModal.classList.remove('active');
-      resetSMSModal();
-    });
-  }
-
-  if (el.smsParseBtn) {
-    el.smsParseBtn.addEventListener('click', () => {
-      triggerSMSParsing();
-    });
-  }
-
-  function triggerSMSParsing() {
-    const text = el.smsTextInput.value.trim();
-    if (!text) {
-      window.NotificationManager.showToast('Please enter or select an SMS message to parse.', 'warning');
-      return;
-    }
-
-    const result = window.SMSParser.parse(text);
-    if (!result.success) {
-      window.NotificationManager.showToast(result.error, 'warning');
-      el.smsPreviewCard.style.display = 'none';
-      el.smsApplyBtn.disabled = true;
-      parsedCandidate = null;
-      return;
-    }
-
-    parsedCandidate = result.data;
-    const isCredit = parsedCandidate.type === 'credit';
-
-    el.smsPreviewCard.style.display = 'block';
-    el.smsPreviewCard.className = `sms-parsed-card ${isCredit ? 'parsed-credit' : 'parsed-debit'}`;
-    el.smsPreviewCard.innerHTML = `
-      <div class="parsed-card-header">
-        <span class="parsed-type-badge ${isCredit ? 'badge-credit' : 'badge-debit'}">
-          ${isCredit ? '🟢 Credit Detected (Money In)' : '🔴 Debit Detected (Money Out)'}
-        </span>
-        <span class="parsed-amount ${isCredit ? 'credit-text' : 'debit-text'}">
-          ${isCredit ? '+' : '-'}${window.ReportsEngine.formatINR(parsedCandidate.amount)}
-        </span>
-      </div>
-      <div class="parsed-grid">
-        <div class="parsed-item">
-          <span class="item-label">Merchant / Recipient</span>
-          <span class="item-val">${escapeHtml(parsedCandidate.merchant)}</span>
-        </div>
-        <div class="parsed-item">
-          <span class="item-label">Source / Bank</span>
-          <span class="item-val">${escapeHtml(parsedCandidate.source)}</span>
-        </div>
-        <div class="parsed-item">
-          <span class="item-label">Category</span>
-          <span class="item-val">${escapeHtml(parsedCandidate.category)}</span>
-        </div>
-        <div class="parsed-item">
-          <span class="item-label">Detected Date</span>
-          <span class="item-val">${window.ReportsEngine.formatDateTime(parsedCandidate.date)}</span>
-        </div>
-      </div>
-      <div class="parsed-notice">
-        <svg class="tiny-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-        <span>This will automatically be added to your <strong>${isCredit ? 'Credit' : 'Debit'}</strong> column!</span>
-      </div>
-    `;
-
-    el.smsApplyBtn.disabled = false;
-  }
-
-  if (el.smsApplyBtn) {
-    el.smsApplyBtn.addEventListener('click', () => {
-      if (!parsedCandidate) return;
-
-      const newTx = window.ExpenseStorage.add(parsedCandidate);
-      window.NotificationManager.sendTransactionDetectedNotification(newTx);
-      window.NotificationManager.showToast(`Transaction added to ${newTx.type === 'credit' ? 'Credit' : 'Debit'} column!`, 'success');
-
-      el.smsModal.classList.remove('active');
-      resetSMSModal();
-      updateNotifBadge();
-    });
-  }
-
-  function resetSMSModal() {
-    el.smsTextInput.value = '';
-    el.smsPreviewCard.style.display = 'none';
-    el.smsApplyBtn.disabled = true;
-    parsedCandidate = null;
-  }
-
-  /* ==========================================================================
-     8. MANUAL ADD & EDIT MODAL (FULL CRUD)
+     7. MANUAL ADD & EDIT MODAL (FULL CRUD)
      ========================================================================== */
 
   let modalSelectedType = 'debit';
@@ -893,8 +768,18 @@ document.addEventListener('DOMContentLoaded', () => {
     el.txDateInput.value = localIso;
 
     el.txModal.classList.add('active');
-    el.txAmountInput.focus();
+    setTimeout(() => el.txAmountInput.focus(), 50);
   }
+
+  // Quick Amount Buttons
+  document.querySelectorAll('.quick-amt-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const addVal = parseFloat(btn.getAttribute('data-val')) || 0;
+      const current = parseFloat(el.txAmountInput.value) || 0;
+      el.txAmountInput.value = current > 0 ? (current + addVal) : addVal;
+      el.txAmountInput.focus();
+    });
+  });
 
   function openEditTxModal(id) {
     const tx = window.ExpenseStorage.getById(id);
@@ -1170,112 +1055,32 @@ document.addEventListener('DOMContentLoaded', () => {
     return div.innerHTML;
   }
 
-  // Sync Modal Handlers
-  const syncBtn = document.getElementById('sync-hub-btn');
-  const syncModal = document.getElementById('sync-modal');
-  const syncCloseBtn = document.getElementById('sync-close-btn');
-  const copySyncUrlBtn = document.getElementById('copy-sync-url-btn');
-  const manualSyncBtn = document.getElementById('manual-sync-btn');
-  const syncUrlInput = document.getElementById('sync-url-input');
+  /* ==========================================================================
+     SYNC HUB: MOBILE <-> LAPTOP AUTOMATIC SYNCHRONIZATION
+     ========================================================================== */
+  const syncHubHeaderBtn = document.getElementById('sync-hub-btn');
 
-  // Fetch actual server info on load to ensure IP is current
-  fetch('./api/info').then(res => res.json()).then(data => {
-    if (data && data.syncUrl && syncUrlInput) {
-      syncUrlInput.value = data.syncUrl;
-    }
-  }).catch(() => {});
-
-  if (syncBtn && syncModal) {
-    syncBtn.addEventListener('click', () => {
-      syncModal.classList.add('active');
-    });
-  }
-
-  if (syncCloseBtn && syncModal) {
-    syncCloseBtn.addEventListener('click', () => {
-      syncModal.classList.remove('active');
-    });
-  }
-
-  if (copySyncUrlBtn && syncUrlInput) {
-    copySyncUrlBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(syncUrlInput.value).then(() => {
-        window.NotificationManager.showToast('Phone connection URL copied to clipboard!', 'success');
-      });
-    });
-  }
-
-  if (manualSyncBtn) {
-    manualSyncBtn.addEventListener('click', async () => {
-      manualSyncBtn.disabled = true;
-      manualSyncBtn.textContent = 'Syncing...';
+  if (syncHubHeaderBtn) {
+    syncHubHeaderBtn.addEventListener('click', async () => {
+      window.NotificationManager.showToast('Syncing data...', 'info');
+      syncHubHeaderBtn.disabled = true;
       const res = await window.ExpenseStorage.syncWithServer();
-      manualSyncBtn.disabled = false;
-      manualSyncBtn.textContent = 'Force Sync Now';
+      syncHubHeaderBtn.disabled = false;
       if (res && res.success) {
-        window.NotificationManager.showToast(`Sync successful! Total ${res.total} transactions synchronized.`, 'success');
+        window.NotificationManager.showToast(`Sync successful! ${res.total} transactions synchronized.`, 'success');
       } else {
-        window.NotificationManager.showToast('Sync hub reached.', 'info');
+        window.NotificationManager.showToast('Sync failed. Please check your connection.', 'warning');
       }
     });
   }
 
+  // Remove status update logic as we are not using the pill or modal anymore
   window.addEventListener('expenseTracker:syncStatus', (e) => {
-    const statusText = document.getElementById('sync-hub-status-text');
-    const statusBadge = document.getElementById('sync-status-badge');
-    if (e.detail.status === 'online') {
-      if (statusText) statusText.textContent = `Connected to local hub • Last synced at ${e.detail.time}`;
-      if (statusBadge) {
-        statusBadge.textContent = 'Online';
-        statusBadge.className = 'metric-badge badge-credit';
-      }
-      if (syncBtn) syncBtn.style.color = 'var(--credit-primary)';
-    } else {
-      if (statusText) statusText.textContent = 'Local hub offline • Operating in standalone mode';
-      if (statusBadge) {
-        statusBadge.textContent = 'Offline';
-        statusBadge.className = 'metric-badge badge-debit';
-      }
-      if (syncBtn) syncBtn.style.color = 'var(--text-muted)';
-    }
+    // Left intentionally blank
   });
-
-  // Auto-capture bank SMS if opened via URL query (?msg=... or ?sms=...)
-  function checkUrlForSMS() {
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const rawMsg = urlParams.get('msg') || urlParams.get('sms') || urlParams.get('text');
-      if (rawMsg && rawMsg.trim()) {
-        const parsed = window.SMSParser.parseSMS(rawMsg.trim());
-        if (parsed && parsed.amount > 0) {
-          const added = window.ExpenseStorage.add({
-            type: parsed.type,
-            amount: parsed.amount,
-            merchant: parsed.merchant,
-            category: parsed.category,
-            source: parsed.source,
-            date: new Date().toISOString(),
-            notes: 'Auto-captured from SMS parameter',
-            rawSms: rawMsg.trim()
-          });
-          if (window.NotificationManager) {
-            window.NotificationManager.showToast(
-              `Recorded ${added.type.toUpperCase()}: ₹${added.amount} at ${added.merchant}`,
-              'success'
-            );
-          }
-          // Clean the query string from the address bar
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      }
-    } catch (err) {
-      console.warn('URL SMS capture error:', err);
-    }
-  }
 
   // Initial render: show dashboard and strictly hide other tabs
   switchTab('dashboard');
-  checkUrlForSMS();
   updateNotifBadge();
   window.ExpenseStorage.syncWithServer().catch(() => {});
 });

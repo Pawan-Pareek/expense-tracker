@@ -1,11 +1,13 @@
 /**
  * Storage Module for Expense Tracker
  * 100% Free, Local On-Device Persistence via LocalStorage
- * Privacy-First: Clean slate, zero pre-loaded dummy data by default.
+ * Full Two-Way Synchronization across Mobile (Phone) & Laptop (PC)
  */
 
 const STORAGE_KEY = 'expense_tracker_transactions_v2';
 const SETTINGS_KEY = 'expense_tracker_settings_v2';
+const DELETED_IDS_KEY = 'expense_tracker_deleted_ids';
+const SYNC_URL_KEY = 'expense_tracker_sync_url';
 
 // Optional demo samples (only loaded if user explicitly clicks "Load Demo Data" in settings)
 const OPTIONAL_DEMO_SAMPLES = [
@@ -17,8 +19,8 @@ const OPTIONAL_DEMO_SAMPLES = [
     category: 'Salary',
     source: 'HDFC Bank',
     date: new Date(Date.now() - 86400000 * 5).toISOString(),
-    notes: 'Monthly corporate salary credit',
-    rawSms: 'Your A/C XX4012 is credited by Rs 50000.00 towards Salary.'
+    notes: 'Monthly salary credit',
+    updatedAt: new Date().toISOString()
   },
   {
     id: 'tx-demo-02',
@@ -29,7 +31,7 @@ const OPTIONAL_DEMO_SAMPLES = [
     source: 'HDFC Bank',
     date: new Date(Date.now() - 86400000 * 4).toISOString(),
     notes: 'House rent payment via UPI',
-    rawSms: 'Rs 15000.00 debited from A/C XX4012 to landlord@okhdfcbank.'
+    updatedAt: new Date().toISOString()
   },
   {
     id: 'tx-demo-03',
@@ -40,7 +42,7 @@ const OPTIONAL_DEMO_SAMPLES = [
     source: 'Axis Bank',
     date: new Date(Date.now() - 86400000 * 2).toISOString(),
     notes: 'Household items',
-    rawSms: 'INR 2450.00 spent on Card XX1102 at AMAZON INDIA.'
+    updatedAt: new Date().toISOString()
   },
   {
     id: 'tx-demo-04',
@@ -51,19 +53,21 @@ const OPTIONAL_DEMO_SAMPLES = [
     source: 'Google Pay',
     date: new Date().toISOString(),
     notes: 'Lunch order',
-    rawSms: 'Rs 480.00 debited to SWIGGY via UPI.'
+    updatedAt: new Date().toISOString()
   }
 ];
 
 class StorageManager {
   constructor() {
-    // Thoroughly remove legacy storage keys that had seeded dummy data
+    // Purge legacy storage keys
     try {
       localStorage.removeItem('expense_tracker_transactions');
       localStorage.removeItem('expense_tracker_transactions_v1');
     } catch (e) {}
 
     this.transactions = this.loadFromStorage();
+    this.deletedIds = this.loadDeletedIds();
+    this.isSyncing = false;
   }
 
   loadFromStorage() {
@@ -78,7 +82,7 @@ class StorageManager {
             'Uber Ride', 'Flipkart Electronics', 'DMart Supermarket', 'Electricity Bill'
           ];
 
-          // Strictly purge any dummy/demo/sample IDs or demo merchants from earlier runs
+          // Strictly purge old pre-seeded dummy IDs
           const cleaned = parsed.filter(t => 
             t && t.id && 
             !t.id.startsWith('tx-sep-') && 
@@ -96,7 +100,6 @@ class StorageManager {
     } catch (e) {
       console.warn('Failed to load from localStorage:', e);
     }
-    // Clean slate: start with completely empty transactions ledger
     return [];
   }
 
@@ -108,6 +111,21 @@ class StorageManager {
     }
   }
 
+  loadDeletedIds() {
+    try {
+      const stored = localStorage.getItem(DELETED_IDS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  saveDeletedIds() {
+    try {
+      localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(this.deletedIds));
+    } catch (e) {}
+  }
+
   getAll() {
     return [...this.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
   }
@@ -117,6 +135,7 @@ class StorageManager {
   }
 
   add(transaction) {
+    const nowIso = new Date().toISOString();
     const newTx = {
       id: transaction.id || 'tx-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
       type: transaction.type === 'credit' ? 'credit' : 'debit',
@@ -124,13 +143,18 @@ class StorageManager {
       merchant: transaction.merchant ? transaction.merchant.trim() : 'Unknown Transaction',
       category: transaction.category ? transaction.category.trim() : (transaction.type === 'credit' ? 'Income' : 'General'),
       source: transaction.source ? transaction.source.trim() : 'Manual',
-      date: transaction.date || new Date().toISOString(),
+      date: transaction.date || nowIso,
       notes: transaction.notes ? transaction.notes.trim() : '',
+      updatedAt: transaction.updatedAt || nowIso,
       rawSms: transaction.rawSms || null
     };
 
+    // Remove from deleted list if re-added
+    this.deletedIds = this.deletedIds.filter(id => id !== newTx.id);
+    this.saveDeletedIds();
+
     // Prevent duplicate entries
-    const exists = this.transactions.some(t => t.id === newTx.id || (t.rawSms && t.rawSms === newTx.rawSms && Math.abs(new Date(t.date) - new Date(newTx.date)) < 60000));
+    const exists = this.transactions.some(t => t.id === newTx.id);
     if (!exists) {
       this.transactions.push(newTx);
       this.saveToStorage(this.transactions);
@@ -148,7 +172,8 @@ class StorageManager {
       ...current,
       ...updatedFields,
       amount: updatedFields.amount !== undefined ? Math.abs(parseFloat(updatedFields.amount) || 0) : current.amount,
-      type: updatedFields.type !== undefined ? (updatedFields.type === 'credit' ? 'credit' : 'debit') : current.type
+      type: updatedFields.type !== undefined ? (updatedFields.type === 'credit' ? 'credit' : 'debit') : current.type,
+      updatedAt: new Date().toISOString()
     };
 
     this.transactions[index] = updated;
@@ -162,21 +187,25 @@ class StorageManager {
     if (index === -1) return false;
 
     const removed = this.transactions.splice(index, 1)[0];
+    if (!this.deletedIds.includes(id)) {
+      this.deletedIds.push(id);
+      this.saveDeletedIds();
+    }
     this.saveToStorage(this.transactions);
     this.dispatchChangeEvent('delete', removed);
     return true;
   }
 
   clearAll() {
+    this.transactions.forEach(t => {
+      if (t.id && !this.deletedIds.includes(t.id)) {
+        this.deletedIds.push(t.id);
+      }
+    });
+    this.saveDeletedIds();
     this.transactions = [];
     this.saveToStorage([]);
     this.dispatchChangeEvent('clear', null);
-    // Also clear server storage
-    fetch('./api/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ transactions: [] })
-    }).catch(() => {});
   }
 
   loadDemoSamples() {
@@ -191,7 +220,7 @@ class StorageManager {
   }
 
   exportCSV() {
-    const headers = ['ID', 'Type', 'Amount (INR)', 'Merchant/Description', 'Category', 'Source', 'Date & Time', 'Notes', 'Raw SMS'];
+    const headers = ['ID', 'Type', 'Amount (INR)', 'Merchant/Description', 'Category', 'Source', 'Date & Time', 'Notes'];
     const rows = this.getAll().map((tx) => [
       `"${tx.id}"`,
       `"${tx.type.toUpperCase()}"`,
@@ -200,8 +229,7 @@ class StorageManager {
       `"${(tx.category || '').replace(/"/g, '""')}"`,
       `"${(tx.source || '').replace(/"/g, '""')}"`,
       `"${tx.date}"`,
-      `"${(tx.notes || '').replace(/"/g, '""')}"`,
-      `"${(tx.rawSms || '').replace(/"/g, '""')}"`
+      `"${(tx.notes || '').replace(/"/g, '""')}"`
     ]);
 
     return [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
@@ -221,58 +249,130 @@ class StorageManager {
         source: item.source || 'Import',
         date: item.date || new Date().toISOString(),
         notes: item.notes || '',
+        updatedAt: item.updatedAt || new Date().toISOString(),
         rawSms: item.rawSms || null
       }));
 
-      this.transactions = validated;
+      // Merge without duplicates
+      let addedCount = 0;
+      const txMap = new Map();
+      this.transactions.forEach(t => txMap.set(t.id, t));
+
+      validated.forEach(t => {
+        if (!txMap.has(t.id)) {
+          txMap.set(t.id, t);
+          addedCount++;
+        } else {
+          // Compare updatedAt
+          const existing = txMap.get(t.id);
+          if ((t.updatedAt || '') > (existing.updatedAt || '')) {
+            txMap.set(t.id, t);
+          }
+        }
+      });
+
+      this.transactions = Array.from(txMap.values());
       this.saveToStorage(this.transactions);
       this.dispatchChangeEvent('import', this.transactions);
-      return { success: true, count: validated.length };
+      return { success: true, count: validated.length, added: addedCount };
     } catch (e) {
       return { success: false, error: e.message };
     }
+  }
+
+  // Configurable Sync URL for Mobile / Remote setup
+  resolveSyncEndpoint() {
+    // For Vercel hosting, we just hit the local /api/sync endpoint
+    return '/api/sync';
   }
 
   dispatchChangeEvent(action, payload) {
     window.dispatchEvent(new CustomEvent('expenseTracker:dataChanged', {
       detail: { action, payload }
     }));
-    this.syncWithServer().catch(() => {});
   }
 
+  /**
+   * Two-Way Synchronization with the Server Hub (Laptop / Cloud)
+   */
   async syncWithServer() {
+    if (this.isSyncing) return null;
+    this.isSyncing = true;
+
     try {
-      const syncEndpoint = (window.AndroidBridge && typeof window.AndroidBridge.getSyncServerUrl === 'function')
-        ? window.AndroidBridge.getSyncServerUrl()
-        : './api/sync';
+      const syncEndpoint = this.resolveSyncEndpoint();
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const resp = await fetch(syncEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transactions: this.transactions })
+        body: JSON.stringify({
+          transactions: this.transactions,
+          deletedIds: this.deletedIds
+        }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+
       if (resp.ok) {
         const result = await resp.json();
         if (result.success && Array.isArray(result.transactions)) {
-          // If server has more or newer transactions
-          if (result.transactions.length !== this.transactions.length) {
-            this.transactions = result.transactions;
+          // Clear acknowledged deletedIds
+          this.deletedIds = [];
+          this.saveDeletedIds();
+
+          const serverTxs = result.transactions;
+          
+          // Check if local transactions changed compared to server
+          const localMap = new Map();
+          this.transactions.forEach(t => localMap.set(t.id, t));
+
+          let hasDiff = false;
+          if (serverTxs.length !== this.transactions.length) {
+            hasDiff = true;
+          } else {
+            for (const sTx of serverTxs) {
+              const lTx = localMap.get(sTx.id);
+              if (!lTx || lTx.amount !== sTx.amount || lTx.type !== sTx.type || (sTx.updatedAt && sTx.updatedAt !== lTx.updatedAt)) {
+                hasDiff = true;
+                break;
+              }
+            }
+          }
+
+          if (hasDiff) {
+            this.transactions = serverTxs;
             this.saveToStorage(this.transactions);
             window.dispatchEvent(new CustomEvent('expenseTracker:dataChanged', {
               detail: { action: 'remoteSync', payload: this.transactions }
             }));
           }
+
           window.dispatchEvent(new CustomEvent('expenseTracker:syncStatus', {
-            detail: { status: 'online', total: result.total || this.transactions.length, time: new Date().toLocaleTimeString() }
+            detail: {
+              status: 'online',
+              total: this.transactions.length,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+              syncedCount: result.syncedCount || 0,
+              endpoint: syncEndpoint
+            }
           }));
-          return result;
+
+          this.isSyncing = false;
+          return { success: true, total: this.transactions.length };
         }
+      } else {
+        throw new Error(`HTTP ${resp.status}`);
       }
     } catch (e) {
       window.dispatchEvent(new CustomEvent('expenseTracker:syncStatus', {
         detail: { status: 'offline', error: e.message }
       }));
     }
+
+    this.isSyncing = false;
     return null;
   }
 }
@@ -280,9 +380,3 @@ class StorageManager {
 // Global storage instance
 window.ExpenseStorage = new StorageManager();
 
-// Periodic sync poll every 8 seconds
-setInterval(() => {
-  if (window.ExpenseStorage) {
-    window.ExpenseStorage.syncWithServer().catch(() => {});
-  }
-}, 8000);

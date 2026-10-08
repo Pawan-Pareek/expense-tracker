@@ -1,4 +1,4 @@
-const CACHE_NAME = 'expense-tracker-v2';
+const CACHE_NAME = 'expense-tracker-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -6,7 +6,7 @@ const ASSETS = [
   './css/components.css',
   './js/app.js',
   './js/storage.js',
-  './js/smsParser.js',
+  './js/qrcode.min.js',
   './js/notifications.js',
   './js/charts.js',
   './js/reports.js',
