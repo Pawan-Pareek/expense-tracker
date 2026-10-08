@@ -43,7 +43,28 @@ module.exports = async (req, res) => {
     }
 
     try {
-      // Read existing cloud transactions
+      // 1. Fetch tombstones (globally deleted IDs)
+      const tombstoneResponse = await fetch(`${kvUrl}/smembers/expense_tracker_tombstones`, {
+        headers: { Authorization: `Bearer ${kvToken}` }
+      });
+      const tombstoneData = await tombstoneResponse.json();
+      const tombstones = new Set(tombstoneData.result || []);
+
+      // 2. Add new deleted IDs to tombstones
+      const deletedIds = req.body?.deletedIds || [];
+      if (Array.isArray(deletedIds) && deletedIds.length > 0) {
+        deletedIds.forEach(id => tombstones.add(id));
+        // Save to KV in the background
+        for (const id of deletedIds) {
+          await fetch(`${kvUrl}/sadd/expense_tracker_tombstones`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${kvToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(id)
+          });
+        }
+      }
+
+      // 3. Read existing cloud transactions
       const response = await fetch(`${kvUrl}/lrange/expense_tracker_txs/0/-1`, {
         headers: { Authorization: `Bearer ${kvToken}` }
       });
@@ -57,22 +78,20 @@ module.exports = async (req, res) => {
         return typeof item === 'string' ? JSON.parse(item) : item;
       });
 
-      // Merge by ID
+      // 4. Merge by ID, aggressively rejecting any ID in the tombstone set
       const map = new Map();
-      existing.forEach(t => map.set(t.id, t));
+      existing.forEach(t => {
+        if (!tombstones.has(t.id)) map.set(t.id, t);
+      });
       
       incomingList.forEach(t => {
-        const existingTx = map.get(t.id);
-        if (!existingTx || (t.updatedAt && (!existingTx.updatedAt || t.updatedAt > existingTx.updatedAt))) {
-          map.set(t.id, t);
+        if (!tombstones.has(t.id)) {
+          const existingTx = map.get(t.id);
+          if (!existingTx || (t.updatedAt && (!existingTx.updatedAt || t.updatedAt > existingTx.updatedAt))) {
+            map.set(t.id, t);
+          }
         }
       });
-
-      // Remove deleted transactions
-      const deletedIds = req.body?.deletedIds || [];
-      if (Array.isArray(deletedIds)) {
-        deletedIds.forEach(id => map.delete(id));
-      }
 
       const merged = Array.from(map.values());
 
