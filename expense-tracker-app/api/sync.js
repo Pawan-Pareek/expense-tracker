@@ -60,7 +60,19 @@ module.exports = async (req, res) => {
       // Merge by ID
       const map = new Map();
       existing.forEach(t => map.set(t.id, t));
-      incomingList.forEach(t => map.set(t.id, t));
+      
+      incomingList.forEach(t => {
+        const existingTx = map.get(t.id);
+        if (!existingTx || (t.updatedAt && (!existingTx.updatedAt || t.updatedAt > existingTx.updatedAt))) {
+          map.set(t.id, t);
+        }
+      });
+
+      // Remove deleted transactions
+      const deletedIds = req.body?.deletedIds || [];
+      if (Array.isArray(deletedIds)) {
+        deletedIds.forEach(id => map.delete(id));
+      }
 
       const merged = Array.from(map.values());
 
