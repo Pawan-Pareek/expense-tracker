@@ -290,6 +290,8 @@ class StorageManager {
     window.dispatchEvent(new CustomEvent('expenseTracker:dataChanged', {
       detail: { action, payload }
     }));
+    // Auto-sync silently in the background whenever data is added, edited, or deleted
+    this.syncWithServer().catch(() => {});
   }
 
   /**
@@ -380,3 +382,13 @@ class StorageManager {
 // Global storage instance
 window.ExpenseStorage = new StorageManager();
 
+// Instant auto-sync when switching back to tab or device gets focused
+window.addEventListener('focus', () => {
+  if (window.ExpenseStorage) window.ExpenseStorage.syncWithServer().catch(() => {});
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && window.ExpenseStorage) {
+    window.ExpenseStorage.syncWithServer().catch(() => {});
+  }
+});
