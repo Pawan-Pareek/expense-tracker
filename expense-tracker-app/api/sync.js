@@ -48,18 +48,17 @@ module.exports = async (req, res) => {
         headers: { Authorization: `Bearer ${kvToken}` }
       });
       const tombstoneData = await tombstoneResponse.json();
-      const tombstones = new Set(tombstoneData.result || []);
+      // Ensure all tombstone IDs are treated as strings
+      const tombstones = new Set((tombstoneData.result || []).map(String));
 
       // 2. Add new deleted IDs to tombstones
       const deletedIds = req.body?.deletedIds || [];
       if (Array.isArray(deletedIds) && deletedIds.length > 0) {
-        deletedIds.forEach(id => tombstones.add(id));
-        // Save to KV in the background
+        deletedIds.forEach(id => tombstones.add(String(id)));
+        // Save to KV sequentially
         for (const id of deletedIds) {
-          await fetch(`${kvUrl}/sadd/expense_tracker_tombstones`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${kvToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(id)
+          await fetch(`${kvUrl}/sadd/expense_tracker_tombstones/${encodeURIComponent(String(id))}`, {
+            headers: { Authorization: `Bearer ${kvToken}` }
           });
         }
       }
@@ -81,11 +80,11 @@ module.exports = async (req, res) => {
       // 4. Merge by ID, aggressively rejecting any ID in the tombstone set
       const map = new Map();
       existing.forEach(t => {
-        if (!tombstones.has(t.id)) map.set(t.id, t);
+        if (!tombstones.has(String(t.id))) map.set(t.id, t);
       });
       
       incomingList.forEach(t => {
-        if (!tombstones.has(t.id)) {
+        if (!tombstones.has(String(t.id))) {
           const existingTx = map.get(t.id);
           if (!existingTx || (t.updatedAt && (!existingTx.updatedAt || t.updatedAt > existingTx.updatedAt))) {
             map.set(t.id, t);
