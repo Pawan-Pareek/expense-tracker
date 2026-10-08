@@ -32,63 +32,67 @@ module.exports = async (req, res) => {
     return res.status(200).json({ success: true, count: 0, transactions: [] });
   }
 
-  // 2. POST: Merge / Sync Transactions
   if (req.method === 'POST') {
     const incomingList = req.body?.transactions || (Array.isArray(req.body) ? req.body : []);
 
-    if (kvUrl && kvToken && incomingList.length > 0) {
-      try {
-        // Read existing cloud transactions
-        const response = await fetch(`${kvUrl}/lrange/expense_tracker_txs/0/-1`, {
-          headers: { Authorization: `Bearer ${kvToken}` }
-        });
-        const data = await response.json();
-        const existing = (data.result || []).map((item) => {
-          return typeof item === 'string' ? JSON.parse(item) : item;
-        });
-
-        // Merge by ID
-        const map = new Map();
-        existing.forEach(t => map.set(t.id, t));
-        incomingList.forEach(t => map.set(t.id, t));
-
-        const merged = Array.from(map.values());
-
-        // Overwrite list in KV
-        await fetch(`${kvUrl}/del/expense_tracker_txs`, {
-          headers: { Authorization: `Bearer ${kvToken}` }
-        });
-
-        // Push merged items (in batches or loop)
-        for (const item of merged.slice(-200)) {
-          await fetch(`${kvUrl}/rpush/expense_tracker_txs`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${kvToken}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(item)
-          });
-        }
-
-        return res.status(200).json({
-          success: true,
-          syncedCount: incomingList.length,
-          total: merged.length,
-          transactions: merged
-        });
-      } catch (e) {
-        console.warn('Cloud sync error:', e);
-      }
+    if (!kvUrl || !kvToken) {
+      return res.status(500).json({
+        success: false,
+        error: 'Vercel KV (Redis) is not configured. Please enable Vercel Storage in your project dashboard.'
+      });
     }
 
-    return res.status(200).json({
-      success: true,
-      syncedCount: incomingList.length,
-      total: incomingList.length,
-      transactions: incomingList
-    });
+    try {
+      // Read existing cloud transactions
+      const response = await fetch(`${kvUrl}/lrange/expense_tracker_txs/0/-1`, {
+        headers: { Authorization: `Bearer ${kvToken}` }
+      });
+      
+      if (!response.ok) {
+         return res.status(500).json({ success: false, error: 'Failed to connect to KV Store.' });
+      }
+
+      const data = await response.json();
+      const existing = (data.result || []).map((item) => {
+        return typeof item === 'string' ? JSON.parse(item) : item;
+      });
+
+      // Merge by ID
+      const map = new Map();
+      existing.forEach(t => map.set(t.id, t));
+      incomingList.forEach(t => map.set(t.id, t));
+
+      const merged = Array.from(map.values());
+
+      // Overwrite list in KV
+      await fetch(`${kvUrl}/del/expense_tracker_txs`, {
+        headers: { Authorization: `Bearer ${kvToken}` }
+      });
+
+      // Push merged items
+      for (const item of merged.slice(-500)) { // limit to last 500 to prevent KV overflow on free tier
+        await fetch(`${kvUrl}/rpush/expense_tracker_txs`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${kvToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(item)
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        syncedCount: incomingList.length,
+        total: merged.length,
+        transactions: merged
+      });
+    } catch (e) {
+      console.warn('Cloud sync error:', e);
+      return res.status(500).json({ success: false, error: e.message });
+    }
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
 };
+

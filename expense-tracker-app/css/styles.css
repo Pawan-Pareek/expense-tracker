@@ -342,6 +342,13 @@ html, body {
   color: var(--text-muted);
 }
 
+.tiny-icon {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
 .card-title {
   font-size: 0.78rem;
   font-weight: 600;
